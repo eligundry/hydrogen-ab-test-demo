@@ -1,20 +1,20 @@
-import {Button} from './Button';
-import {FeaturedSection} from './FeaturedSection';
-import {PageHeader, Text} from './Text';
+import { Button } from './Button'
+import { FeaturedSection } from './FeaturedSection'
+import { PageHeader, Text } from './Text'
 
 export function GenericError({
   error,
 }: {
-  error?: {message: string; stack?: string};
+  error?: { message: string; stack?: string }
 }) {
-  const heading = `Something’s wrong here.`;
-  let description = `We found an error while loading this page.`;
+  const heading = `Something’s wrong here.`
+  let description = `We found an error while loading this page.`
 
   // TODO hide error in prod?
   if (error) {
-    description += `\n${error.message}`;
+    description += `\n${error.message}`
     // eslint-disable-next-line no-console
-    console.error(error);
+    console.error(error)
   }
 
   return (
@@ -43,7 +43,7 @@ export function GenericError({
       </PageHeader>
       <FeaturedSection />
     </>
-  );
+  )
 }
 
 function addLinksToStackTrace(stackTrace: string) {
@@ -52,7 +52,7 @@ function addLinksToStackTrace(stackTrace: string) {
     (all, m1) =>
       all.replace(
         m1,
-        `<a href="vscode://file${m1}" class="hover:underline">${m1}</a>`,
-      ),
-  );
+        `<a href="vscode://file${m1}" class="hover:underline">${m1}</a>`
+      )
+  )
 }

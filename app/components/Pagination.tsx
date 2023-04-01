@@ -1,38 +1,41 @@
-import {useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo, useState } from 'react'
 import type {
   Maybe,
   PageInfo,
   ProductConnection,
-} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/hydrogen/storefront-api-types'
 
-import {useInView, type IntersectionOptions} from 'react-intersection-observer';
-import {useTransition, useLocation, useNavigate} from '@remix-run/react';
+import {
+  useInView,
+  type IntersectionOptions,
+} from 'react-intersection-observer'
+import { useTransition, useLocation, useNavigate } from '@remix-run/react'
 
 type Connection = {
-  nodes: ProductConnection['nodes'] | any[];
-  pageInfo: PageInfo;
-};
+  nodes: ProductConnection['nodes'] | any[]
+  pageInfo: PageInfo
+}
 
 type PaginationState = {
-  nodes: ProductConnection['nodes'] | any[];
-  pageInfo: PageInfo | null;
-};
+  nodes: ProductConnection['nodes'] | any[]
+  pageInfo: PageInfo | null
+}
 
 type Props<Resource extends Connection> = {
-  connection: Resource;
-  autoLoadOnScroll?: boolean | IntersectionOptions;
-};
+  connection: Resource
+  autoLoadOnScroll?: boolean | IntersectionOptions
+}
 
 interface PaginationInfo {
-  endCursor: Maybe<string> | undefined;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  isLoading: boolean;
-  nextLinkRef: any;
-  nextPageUrl: string;
-  nodes: ProductConnection['nodes'] | any[];
-  prevPageUrl: string;
-  startCursor: Maybe<string> | undefined;
+  endCursor: Maybe<string> | undefined
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  isLoading: boolean
+  nextLinkRef: any
+  nextPageUrl: string
+  nodes: ProductConnection['nodes'] | any[]
+  prevPageUrl: string
+  startCursor: Maybe<string> | undefined
 }
 
 export function Pagination<Resource extends Connection>({
@@ -49,11 +52,11 @@ export function Pagination<Resource extends Connection>({
     nodes,
     prevPageUrl,
     startCursor,
-  }: PaginationInfo) => JSX.Element | null;
+  }: PaginationInfo) => JSX.Element | null
 }) {
-  const transition = useTransition();
-  const isLoading = transition.state === 'loading';
-  const autoScrollEnabled = Boolean(autoLoadOnScroll);
+  const transition = useTransition()
+  const isLoading = transition.state === 'loading'
+  const autoScrollEnabled = Boolean(autoLoadOnScroll)
   const autoScrollConfig = (
     autoScrollEnabled
       ? autoLoadOnScroll
@@ -61,8 +64,8 @@ export function Pagination<Resource extends Connection>({
           threshold: 0,
           rootMargin: '1000px 0px 0px 0px',
         }
-  ) as IntersectionOptions;
-  const {ref: nextLinkRef, inView} = useInView(autoScrollConfig);
+  ) as IntersectionOptions
+  const { ref: nextLinkRef, inView } = useInView(autoScrollConfig)
   const {
     endCursor,
     hasNextPage,
@@ -71,18 +74,18 @@ export function Pagination<Resource extends Connection>({
     nodes,
     prevPageUrl,
     startCursor,
-  } = usePagination(connection);
+  } = usePagination(connection)
 
   // auto load next page if in view
   useLoadMoreWhenInView({
     disabled: !autoScrollEnabled,
     connection: {
-      pageInfo: {startCursor, endCursor, hasPreviousPage, hasNextPage},
+      pageInfo: { startCursor, endCursor, hasPreviousPage, hasNextPage },
       nodes,
     },
     inView,
     isLoading,
-  });
+  })
 
   return children({
     endCursor,
@@ -94,95 +97,94 @@ export function Pagination<Resource extends Connection>({
     nodes,
     prevPageUrl,
     startCursor,
-  });
+  })
 }
 
 /**
  * Get cumulative pagination logic for a given connection
  */
 export function usePagination(
-  connection: Connection,
+  connection: Connection
 ): Omit<PaginationInfo, 'isLoading' | 'nextLinkRef'> {
-  const [nodes, setNodes] = useState(connection.nodes);
-  const {state, search} = useLocation() as {
-    state: PaginationState;
-    search: string;
-  };
-  const params = new URLSearchParams(search);
-  const direction = params.get('direction');
-  const isPrevious = direction === 'previous';
+  const [nodes, setNodes] = useState(connection.nodes)
+  const { state, search } = useLocation() as {
+    state: PaginationState
+    search: string
+  }
+  const params = new URLSearchParams(search)
+  const direction = params.get('direction')
+  const isPrevious = direction === 'previous'
 
-  const {hasNextPage, hasPreviousPage, startCursor, endCursor} =
-    connection.pageInfo;
+  const { hasNextPage, hasPreviousPage, startCursor, endCursor } =
+    connection.pageInfo
 
   const currentPageInfo = useMemo(() => {
     let pageStartCursor =
       state?.pageInfo?.startCursor === undefined
         ? startCursor
-        : state.pageInfo.startCursor;
+        : state.pageInfo.startCursor
 
     let pageEndCursor =
       state?.pageInfo?.endCursor === undefined
         ? endCursor
-        : state.pageInfo.endCursor;
+        : state.pageInfo.endCursor
 
     if (state?.nodes) {
       if (isPrevious) {
-        pageStartCursor = startCursor;
+        pageStartCursor = startCursor
       } else {
-        pageEndCursor = endCursor;
+        pageEndCursor = endCursor
       }
     }
 
     const previousPageExists =
       state?.pageInfo?.hasPreviousPage === undefined
         ? hasPreviousPage
-        : state.pageInfo.hasPreviousPage;
+        : state.pageInfo.hasPreviousPage
 
     const nextPageExists =
       state?.pageInfo?.hasNextPage === undefined
         ? hasNextPage
-        : state.pageInfo.hasNextPage;
+        : state.pageInfo.hasNextPage
 
     return {
       startCursor: pageStartCursor,
       endCursor: pageEndCursor,
       hasPreviousPage: previousPageExists,
       hasNextPage: nextPageExists,
-    };
-  }, [isPrevious, state, hasNextPage, hasPreviousPage, startCursor, endCursor]);
+    }
+  }, [isPrevious, state, hasNextPage, hasPreviousPage, startCursor, endCursor])
 
   const prevPageUrl = useMemo(() => {
-    const params = new URLSearchParams(search);
-    params.set('direction', 'previous');
+    const params = new URLSearchParams(search)
+    params.set('direction', 'previous')
     currentPageInfo.startCursor &&
-      params.set('cursor', currentPageInfo.startCursor);
-    return `?${params.toString()}`;
-  }, [search, currentPageInfo.startCursor]);
+      params.set('cursor', currentPageInfo.startCursor)
+    return `?${params.toString()}`
+  }, [search, currentPageInfo.startCursor])
 
   const nextPageUrl = useMemo(() => {
-    const params = new URLSearchParams(search);
-    params.set('direction', 'next');
-    currentPageInfo.endCursor &&
-      params.set('cursor', currentPageInfo.endCursor);
-    return `?${params.toString()}`;
-  }, [search, currentPageInfo.endCursor]);
+    const params = new URLSearchParams(search)
+    params.set('direction', 'next')
+    currentPageInfo.endCursor && params.set('cursor', currentPageInfo.endCursor)
+    return `?${params.toString()}`
+  }, [search, currentPageInfo.endCursor])
 
   // the only way to prevent hydration mismatches
   useEffect(() => {
     if (!state || !state?.nodes) {
-      setNodes(connection.nodes);
-      return;
+      setNodes(connection.nodes)
+      return
     }
 
     if (isPrevious) {
-      setNodes([...connection.nodes, ...state.nodes]);
+      setNodes([...connection.nodes, ...state.nodes])
     } else {
-      setNodes([...state.nodes, ...connection.nodes]);
+      setNodes([...state.nodes, ...connection.nodes])
     }
-  }, [state, isPrevious, connection.nodes]);
+  }, [state, isPrevious, connection.nodes])
 
-  return {...currentPageInfo, prevPageUrl, nextPageUrl, nodes};
+  return { ...currentPageInfo, prevPageUrl, nextPageUrl, nodes }
 }
 
 /**
@@ -198,28 +200,28 @@ function useLoadMoreWhenInView<Resource extends Connection>({
   isLoading,
   connection,
 }: Pick<Props<Resource>, 'autoLoadOnScroll' | 'connection'> & {
-  disabled: boolean;
-  inView: boolean;
-  isLoading: boolean;
+  disabled: boolean
+  inView: boolean
+  isLoading: boolean
 }) {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const {
-    pageInfo: {startCursor, endCursor, hasPreviousPage, hasNextPage},
+    pageInfo: { startCursor, endCursor, hasPreviousPage, hasNextPage },
     nodes,
-  } = connection;
+  } = connection
 
   // load next when in view and autoLoadOnScroll
   useEffect(() => {
-    if (!inView) return;
-    if (!hasNextPage) return;
-    if (!endCursor) return;
-    if (disabled) return;
-    if (isLoading) return;
+    if (!inView) return
+    if (!hasNextPage) return
+    if (!endCursor) return
+    if (disabled) return
+    if (isLoading) return
 
     const nextPageUrl =
-      location.pathname + `?index&cursor=${endCursor}&direction=next`;
+      location.pathname + `?index&cursor=${endCursor}&direction=next`
 
     navigate(nextPageUrl, {
       state: {
@@ -230,7 +232,7 @@ function useLoadMoreWhenInView<Resource extends Connection>({
         },
         nodes,
       },
-    });
+    })
   }, [
     disabled,
     endCursor,
@@ -242,7 +244,7 @@ function useLoadMoreWhenInView<Resource extends Connection>({
     location.pathname,
     navigate,
     startCursor,
-  ]);
+  ])
 }
 
 /**
@@ -254,24 +256,24 @@ function useLoadMoreWhenInView<Resource extends Connection>({
  * @returns cumulativePageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage}
  */
 export function getPaginationVariables(request: Request, pageBy: number) {
-  const searchParams = new URLSearchParams(new URL(request.url).search);
+  const searchParams = new URLSearchParams(new URL(request.url).search)
 
-  const cursor = searchParams.get('cursor') ?? undefined;
+  const cursor = searchParams.get('cursor') ?? undefined
   const direction =
-    searchParams.get('direction') === 'previous' ? 'previous' : 'next';
-  const isPrevious = direction === 'previous';
+    searchParams.get('direction') === 'previous' ? 'previous' : 'next'
+  const isPrevious = direction === 'previous'
 
   const prevPage = {
     last: pageBy,
     startCursor: cursor ?? null,
-  };
+  }
 
   const nextPage = {
     first: pageBy,
     endCursor: cursor ?? null,
-  };
+  }
 
-  const variables = isPrevious ? prevPage : nextPage;
+  const variables = isPrevious ? prevPage : nextPage
 
-  return variables;
+  return variables
 }

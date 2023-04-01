@@ -1,16 +1,16 @@
-import {Form} from '@remix-run/react';
+import { Form } from '@remix-run/react'
 import type {
   Customer,
   MailingAddress,
-} from '@shopify/hydrogen/storefront-api-types';
-import {Button, Link, Text} from '~/components';
+} from '@shopify/hydrogen/storefront-api-types'
+import { Button, Link, Text } from '~/components'
 
 export function AccountAddressBook({
   customer,
   addresses,
 }: {
-  customer: Customer;
-  addresses: MailingAddress[];
+  customer: Customer
+  addresses: MailingAddress[]
 }) {
   return (
     <>
@@ -46,15 +46,15 @@ export function AccountAddressBook({
         </div>
       </div>
     </>
-  );
+  )
 }
 
 function Address({
   address,
   defaultAddress,
 }: {
-  address: MailingAddress;
-  defaultAddress?: boolean;
+  address: MailingAddress
+  defaultAddress?: boolean
 }) {
   return (
     <div className="lg:p-8 p-6 border border-gray-200 rounded flex flex-col">
@@ -93,5 +93,5 @@ function Address({
         </Form>
       </div>
     </div>
-  );
+  )
 }

@@ -1,13 +1,13 @@
-import clsx from 'clsx';
-import type {SerializeFrom} from '@shopify/remix-oxygen';
-import {MediaFile} from '@shopify/hydrogen';
+import clsx from 'clsx'
+import type { SerializeFrom } from '@shopify/remix-oxygen'
+import { MediaFile } from '@shopify/hydrogen'
 import type {
   MediaImage,
   Media,
   Video as MediaVideo,
-} from '@shopify/hydrogen/storefront-api-types';
-import {Heading, Text, Link} from '~/components';
-import type {CollectionHero} from '~/routes/($lang)/index';
+} from '@shopify/hydrogen/storefront-api-types'
+import { Heading, Text, Link } from '~/components'
+import type { CollectionHero } from '~/routes/($lang)/index'
 
 /**
  * Hero component that renders metafields attached to collection resources
@@ -31,7 +31,7 @@ export function Hero({
           top && '-mt-nav',
           height === 'full'
             ? 'h-screen'
-            : 'aspect-[4/5] sm:aspect-square md:aspect-[5/4] lg:aspect-[3/2] xl:aspect-[2/1]',
+            : 'aspect-[4/5] sm:aspect-square md:aspect-[5/4] lg:aspect-[3/2] xl:aspect-[2/1]'
         )}
       >
         <div className="absolute inset-0 grid flex-grow grid-flow-col pointer-events-none auto-cols-fr -z-10 content-stretch overflow-clip">
@@ -82,17 +82,17 @@ export function Hero({
         </div>
       </section>
     </Link>
-  );
+  )
 }
 
 interface SpreadMediaProps {
-  data: Media | MediaImage | MediaVideo;
-  loading?: HTMLImageElement['loading'];
-  decoding?: HTMLImageElement['decoding'];
-  scale?: 2 | 3;
-  sizes: string;
-  width: number;
-  widths: number[];
+  data: Media | MediaImage | MediaVideo
+  loading?: HTMLImageElement['loading']
+  decoding?: HTMLImageElement['decoding']
+  scale?: 2 | 3
+  sizes: string
+  width: number
+  widths: number[]
 }
 
 function SpreadMedia({
@@ -116,12 +116,12 @@ function SpreadMedia({
           playsInline: true,
           autoPlay: true,
           width: (scale ?? 1) * width,
-          previewImageOptions: {scale, src: data.previewImage?.url ?? ''},
+          previewImageOptions: { scale, src: data.previewImage?.url ?? '' },
         },
         image: {
           loading,
           decoding,
-          loaderOptions: {scale, crop: 'center'},
+          loaderOptions: { scale, crop: 'center' },
           widths,
           sizes,
           width,
@@ -129,5 +129,5 @@ function SpreadMedia({
         },
       }}
     />
-  );
+  )
 }

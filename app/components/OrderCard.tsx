@@ -1,12 +1,12 @@
-import {flattenConnection} from '@shopify/hydrogen';
-import type {Order} from '@shopify/hydrogen/storefront-api-types';
-import {Heading, Text, Link} from '~/components';
-import {statusMessage} from '~/lib/utils';
+import { flattenConnection } from '@shopify/hydrogen'
+import type { Order } from '@shopify/hydrogen/storefront-api-types'
+import { Heading, Text, Link } from '~/components'
+import { statusMessage } from '~/lib/utils'
 
-export function OrderCard({order}: {order: Order}) {
-  if (!order?.id) return null;
-  const [legacyOrderId, key] = order!.id!.split('/').pop()!.split('?');
-  const lineItems = flattenConnection(order?.lineItems);
+export function OrderCard({ order }: { order: Order }) {
+  if (!order?.id) return null
+  const [legacyOrderId, key] = order!.id!.split('/').pop()!.split('?')
+  const lineItems = flattenConnection(order?.lineItems)
 
   return (
     <li className="grid text-center border rounded">
@@ -78,5 +78,5 @@ export function OrderCard({order}: {order: Order}) {
         </Link>
       </div>
     </li>
-  );
+  )
 }

@@ -5,14 +5,14 @@ import {
   useLoaderData,
   useMatches,
   useOutlet,
-} from '@remix-run/react';
+} from '@remix-run/react'
 import type {
   Collection,
   Customer,
   MailingAddress,
   Order,
-} from '@shopify/hydrogen/storefront-api-types';
-import {Suspense} from 'react';
+} from '@shopify/hydrogen/storefront-api-types'
+import { Suspense } from 'react'
 import {
   Button,
   OrderCard,
@@ -22,52 +22,52 @@ import {
   AccountAddressBook,
   Modal,
   ProductSwimlane,
-} from '~/components';
-import {FeaturedCollections} from '~/components/FeaturedCollections';
+} from '~/components'
+import { FeaturedCollections } from '~/components/FeaturedCollections'
 import {
   json,
   defer,
   redirect,
   type LoaderArgs,
   type AppLoadContext,
-} from '@shopify/remix-oxygen';
-import {flattenConnection} from '@shopify/hydrogen';
-import {getFeaturedData} from './featured-products';
-import {doLogout} from './account/__private/logout';
-import {usePrefixPathWithLocale} from '~/lib/utils';
-import {CACHE_NONE, routeHeaders} from '~/data/cache';
+} from '@shopify/remix-oxygen'
+import { flattenConnection } from '@shopify/hydrogen'
+import { getFeaturedData } from './featured-products'
+import { doLogout } from './account/__private/logout'
+import { usePrefixPathWithLocale } from '~/lib/utils'
+import { CACHE_NONE, routeHeaders } from '~/data/cache'
 
 // Combining json + Response + defer in a loader breaks the
 // types returned by useLoaderData. This is a temporary fix.
-type TmpRemixFix = ReturnType<typeof defer<{isAuthenticated: false}>>;
+type TmpRemixFix = ReturnType<typeof defer<{ isAuthenticated: false }>>
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-export async function loader({request, context, params}: LoaderArgs) {
-  const {pathname} = new URL(request.url);
-  const lang = params.lang;
-  const customerAccessToken = await context.session.get('customerAccessToken');
-  const isAuthenticated = Boolean(customerAccessToken);
-  const loginPath = lang ? `/${lang}/account/login` : '/account/login';
-  const isAccountPage = /^\/account\/?$/.test(pathname);
+export async function loader({ request, context, params }: LoaderArgs) {
+  const { pathname } = new URL(request.url)
+  const lang = params.lang
+  const customerAccessToken = await context.session.get('customerAccessToken')
+  const isAuthenticated = Boolean(customerAccessToken)
+  const loginPath = lang ? `/${lang}/account/login` : '/account/login'
+  const isAccountPage = /^\/account\/?$/.test(pathname)
 
   if (!isAuthenticated) {
     if (isAccountPage) {
-      return redirect(loginPath) as unknown as TmpRemixFix;
+      return redirect(loginPath) as unknown as TmpRemixFix
     }
     // pass through to public routes
-    return json({isAuthenticated: false}) as unknown as TmpRemixFix;
+    return json({ isAuthenticated: false }) as unknown as TmpRemixFix
   }
 
-  const customer = await getCustomer(context, customerAccessToken);
+  const customer = await getCustomer(context, customerAccessToken)
 
   const heading = customer
     ? customer.firstName
       ? `Welcome, ${customer.firstName}.`
       : `Welcome to your account.`
-    : 'Account Details';
+    : 'Account Details'
 
-  const orders = flattenConnection(customer.orders) as Order[];
+  const orders = flattenConnection(customer.orders) as Order[]
 
   return defer(
     {
@@ -82,23 +82,23 @@ export async function loader({request, context, params}: LoaderArgs) {
       headers: {
         'Cache-Control': CACHE_NONE,
       },
-    },
-  );
+    }
+  )
 }
 
 export default function Authenticated() {
-  const data = useLoaderData<typeof loader>();
-  const outlet = useOutlet();
-  const matches = useMatches();
+  const data = useLoaderData<typeof loader>()
+  const outlet = useOutlet()
+  const matches = useMatches()
 
   // routes that export handle { renderInModal: true }
   const renderOutletInModal = matches.some((match) => {
-    return match?.handle?.renderInModal;
-  });
+    return match?.handle?.renderInModal
+  })
 
   // Public routes
   if (!data.isAuthenticated) {
-    return <Outlet />;
+    return <Outlet />
   }
 
   // Authenticated routes
@@ -107,25 +107,25 @@ export default function Authenticated() {
       return (
         <>
           <Modal cancelLink="/account">
-            <Outlet context={{customer: data.customer}} />
+            <Outlet context={{ customer: data.customer }} />
           </Modal>
           <Account {...(data as Account)} />
         </>
-      );
+      )
     } else {
-      return <Outlet context={{customer: data.customer}} />;
+      return <Outlet context={{ customer: data.customer }} />
     }
   }
 
-  return <Account {...(data as Account)} />;
+  return <Account {...(data as Account)} />
 }
 
 interface Account {
-  customer: Customer;
-  orders: Order[];
-  heading: string;
-  addresses: MailingAddress[];
-  featuredData: any; // @todo: help please
+  customer: Customer
+  orders: Order[]
+  heading: string
+  addresses: MailingAddress[]
+  featuredData: any // @todo: help please
 }
 
 function Account({
@@ -169,10 +169,10 @@ function Account({
         </Suspense>
       )}
     </>
-  );
+  )
 }
 
-function AccountOrderHistory({orders}: {orders: Order[]}) {
+function AccountOrderHistory({ orders }: { orders: Order[] }) {
   return (
     <div className="mt-6">
       <div className="grid w-full gap-4 p-4 py-6 md:gap-8 md:p-8 lg:p-12">
@@ -180,7 +180,7 @@ function AccountOrderHistory({orders}: {orders: Order[]}) {
         {orders?.length ? <Orders orders={orders} /> : <EmptyOrders />}
       </div>
     </div>
-  );
+  )
 }
 
 function EmptyOrders() {
@@ -199,17 +199,17 @@ function EmptyOrders() {
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
-function Orders({orders}: {orders: Order[]}) {
+function Orders({ orders }: { orders: Order[] }) {
   return (
     <ul className="grid grid-flow-row grid-cols-1 gap-2 gap-y-6 md:gap-4 lg:gap-6 false sm:grid-cols-3">
       {orders.map((order) => (
         <OrderCard order={order} key={order.id} />
       ))}
     </ul>
-  );
+  )
 }
 
 const CUSTOMER_QUERY = `#graphql
@@ -287,30 +287,30 @@ const CUSTOMER_QUERY = `#graphql
       }
     }
   }
-`;
+`
 
 export async function getCustomer(
   context: AppLoadContext,
-  customerAccessToken: string,
+  customerAccessToken: string
 ) {
-  const {storefront} = context;
+  const { storefront } = context
 
   const data = await storefront.query<{
-    customer: Customer;
+    customer: Customer
   }>(CUSTOMER_QUERY, {
     variables: {
       customerAccessToken,
       country: context.storefront.i18n.country,
       language: context.storefront.i18n.language,
     },
-  });
+  })
 
   /**
    * If the customer failed to load, we assume their access token is invalid.
    */
   if (!data || !data.customer) {
-    throw await doLogout(context);
+    throw await doLogout(context)
   }
 
-  return data.customer;
+  return data.customer
 }

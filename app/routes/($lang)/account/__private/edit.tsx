@@ -1,65 +1,65 @@
-import {json, redirect, type ActionFunction} from '@shopify/remix-oxygen';
+import { json, redirect, type ActionFunction } from '@shopify/remix-oxygen'
 import {
   useActionData,
   Form,
   useOutletContext,
   useTransition,
-} from '@remix-run/react';
+} from '@remix-run/react'
 import type {
   Customer,
   CustomerUpdateInput,
   CustomerUpdatePayload,
-} from '@shopify/hydrogen/storefront-api-types';
-import clsx from 'clsx';
-import invariant from 'tiny-invariant';
-import {Button, Text} from '~/components';
-import {getInputStyleClasses, assertApiErrors} from '~/lib/utils';
-import {getCustomer} from '../../account';
+} from '@shopify/hydrogen/storefront-api-types'
+import clsx from 'clsx'
+import invariant from 'tiny-invariant'
+import { Button, Text } from '~/components'
+import { getInputStyleClasses, assertApiErrors } from '~/lib/utils'
+import { getCustomer } from '../../account'
 
 export interface AccountOutletContext {
-  customer: Customer;
+  customer: Customer
 }
 
 export interface ActionData {
-  success?: boolean;
-  formError?: string;
+  success?: boolean
+  formError?: string
   fieldErrors?: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    currentPassword?: string;
-    newPassword?: string;
-    newPassword2?: string;
-  };
+    firstName?: string
+    lastName?: string
+    email?: string
+    phone?: string
+    currentPassword?: string
+    newPassword?: string
+    newPassword2?: string
+  }
 }
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 const formDataHas = (formData: FormData, key: string) => {
-  if (!formData.has(key)) return false;
+  if (!formData.has(key)) return false
 
-  const value = formData.get(key);
-  return typeof value === 'string' && value.length > 0;
-};
+  const value = formData.get(key)
+  return typeof value === 'string' && value.length > 0
+}
 
 export const handle = {
   renderInModal: true,
-};
+}
 
-export const action: ActionFunction = async ({request, context, params}) => {
-  const formData = await request.formData();
+export const action: ActionFunction = async ({ request, context, params }) => {
+  const formData = await request.formData()
 
-  const customerAccessToken = await context.session.get('customerAccessToken');
+  const customerAccessToken = await context.session.get('customerAccessToken')
 
   invariant(
     customerAccessToken,
-    'You must be logged in to update your account details.',
-  );
+    'You must be logged in to update your account details.'
+  )
 
   // Double-check current user is logged in.
   // Will throw a logout redirect if not.
-  await getCustomer(context, customerAccessToken);
+  await getCustomer(context, customerAccessToken)
 
   if (
     formDataHas(formData, 'newPassword') &&
@@ -70,7 +70,7 @@ export const action: ActionFunction = async ({request, context, params}) => {
         currentPassword:
           'Please enter your current password before entering a new password.',
       },
-    });
+    })
   }
 
   if (
@@ -81,39 +81,39 @@ export const action: ActionFunction = async ({request, context, params}) => {
       fieldErrors: {
         newPassword2: 'New passwords must match.',
       },
-    });
+    })
   }
 
   try {
-    const customer: CustomerUpdateInput = {};
+    const customer: CustomerUpdateInput = {}
 
     formDataHas(formData, 'firstName') &&
-      (customer.firstName = formData.get('firstName') as string);
+      (customer.firstName = formData.get('firstName') as string)
     formDataHas(formData, 'lastName') &&
-      (customer.lastName = formData.get('lastName') as string);
+      (customer.lastName = formData.get('lastName') as string)
     formDataHas(formData, 'email') &&
-      (customer.email = formData.get('email') as string);
+      (customer.email = formData.get('email') as string)
     formDataHas(formData, 'phone') &&
-      (customer.phone = formData.get('phone') as string);
+      (customer.phone = formData.get('phone') as string)
     formDataHas(formData, 'newPassword') &&
-      (customer.password = formData.get('newPassword') as string);
+      (customer.password = formData.get('newPassword') as string)
 
     const data = await context.storefront.mutate<{
-      customerUpdate: CustomerUpdatePayload;
+      customerUpdate: CustomerUpdatePayload
     }>(CUSTOMER_UPDATE_MUTATION, {
       variables: {
         customerAccessToken,
         customer,
       },
-    });
+    })
 
-    assertApiErrors(data.customerUpdate);
+    assertApiErrors(data.customerUpdate)
 
-    return redirect(params?.lang ? `${params.lang}/account` : '/account');
+    return redirect(params?.lang ? `${params.lang}/account` : '/account')
   } catch (error: any) {
-    return badRequest({formError: error.message});
+    return badRequest({ formError: error.message })
   }
-};
+}
 
 /**
  * Since this component is nested in `accounts/`, it is rendered in a modal via `<Outlet>` in `account.tsx`.
@@ -126,9 +126,9 @@ export const action: ActionFunction = async ({request, context, params}) => {
  * - use the presence of outlet data (in `account.tsx`) to open/close the modal (no useState)
  */
 export default function AccountDetailsEdit() {
-  const actionData = useActionData<ActionData>();
-  const {customer} = useOutletContext<AccountOutletContext>();
-  const transition = useTransition();
+  const actionData = useActionData<ActionData>()
+  const { customer } = useOutletContext<AccountOutletContext>()
+  const transition = useTransition()
 
   return (
     <>
@@ -223,7 +223,7 @@ export default function AccountDetailsEdit() {
           color="subtle"
           className={clsx(
             'mt-1',
-            actionData?.fieldErrors?.newPassword && 'text-red-500',
+            actionData?.fieldErrors?.newPassword && 'text-red-500'
           )}
         >
           Passwords must be at least 8 characters.
@@ -252,7 +252,7 @@ export default function AccountDetailsEdit() {
         </div>
       </Form>
     </>
-  );
+  )
 }
 
 function Password({
@@ -260,9 +260,9 @@ function Password({
   passwordError,
   label,
 }: {
-  name: string;
-  passwordError?: string;
-  label: string;
+  name: string
+  passwordError?: string
+  label: string
 }) {
   return (
     <div className="mt-3">
@@ -279,7 +279,7 @@ function Password({
         minLength={8}
       />
     </div>
-  );
+  )
 }
 
 const CUSTOMER_UPDATE_MUTATION = `#graphql
@@ -292,4 +292,4 @@ const CUSTOMER_UPDATE_MUTATION = `#graphql
       }
     }
   }
-  `;
+  `

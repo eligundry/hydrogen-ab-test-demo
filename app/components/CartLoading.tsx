@@ -46,5 +46,5 @@ export function CartLoading() {
         </g>
       </svg>
     </div>
-  );
+  )
 }

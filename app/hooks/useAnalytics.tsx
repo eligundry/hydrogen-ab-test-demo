@@ -1,4 +1,4 @@
-import {useLocation, useFetchers, useMatches} from '@remix-run/react';
+import { useLocation, useFetchers, useMatches } from '@remix-run/react'
 import {
   AnalyticsEventName,
   getClientBrowserParameters,
@@ -6,23 +6,23 @@ import {
   ShopifyAddToCartPayload,
   ShopifyPageViewPayload,
   useShopifyCookies,
-} from '@shopify/hydrogen';
-import {useEffect} from 'react';
-import {CartAction, I18nLocale} from '../lib/type';
+} from '@shopify/hydrogen'
+import { useEffect } from 'react'
+import { CartAction, I18nLocale } from '../lib/type'
 
 export function useAnalytics(hasUserConsent: boolean, locale: I18nLocale) {
-  useShopifyCookies({hasUserConsent});
-  const location = useLocation();
+  useShopifyCookies({ hasUserConsent })
+  const location = useLocation()
   const analyticsFromMatches = useDataFromMatches(
-    'analytics',
-  ) as unknown as ShopifyPageViewPayload;
+    'analytics'
+  ) as unknown as ShopifyPageViewPayload
 
   const pageAnalytics = {
     ...analyticsFromMatches,
     currency: locale.currency,
     acceptedLanguage: locale.language,
     hasUserConsent,
-  };
+  }
 
   // Page view analytics
   // We want useEffect to execute only when location changes
@@ -31,32 +31,32 @@ export function useAnalytics(hasUserConsent: boolean, locale: I18nLocale) {
     const payload: ShopifyPageViewPayload = {
       ...getClientBrowserParameters(),
       ...pageAnalytics,
-    };
+    }
 
     sendShopifyAnalytics({
       eventName: AnalyticsEventName.PAGE_VIEW,
       payload,
-    });
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
+  }, [location])
 
   // Add to cart analytics
   const cartData = useDataFromFetchers({
     formDataKey: 'cartAction',
     formDataValue: CartAction.ADD_TO_CART,
     dataKey: 'analytics',
-  }) as unknown as ShopifyAddToCartPayload;
+  }) as unknown as ShopifyAddToCartPayload
   if (cartData) {
     const addToCartPayload: ShopifyAddToCartPayload = {
       ...getClientBrowserParameters(),
       ...pageAnalytics,
       ...cartData,
-    };
+    }
 
     sendShopifyAnalytics({
       eventName: AnalyticsEventName.ADD_TO_CART,
       payload: addToCartPayload,
-    });
+    })
   }
 }
 
@@ -89,17 +89,17 @@ export function useAnalytics(hasUserConsent: boolean, locale: I18nLocale) {
  * ```
  **/
 function useDataFromMatches(dataKey: string): Record<string, unknown> {
-  const matches = useMatches();
-  const data: Record<string, unknown> = {};
+  const matches = useMatches()
+  const data: Record<string, unknown> = {}
 
   matches.forEach((event) => {
-    const eventData = event?.data;
+    const eventData = event?.data
     if (eventData && eventData[dataKey]) {
-      Object.assign(data, eventData[dataKey]);
+      Object.assign(data, eventData[dataKey])
     }
-  });
+  })
 
-  return data;
+  return data
 }
 
 /**
@@ -168,33 +168,33 @@ function useDataFromFetchers({
   formDataValue,
   dataKey,
 }: {
-  formDataKey: string;
-  formDataValue: unknown;
-  dataKey: string;
+  formDataKey: string
+  formDataValue: unknown
+  dataKey: string
 }): Record<string, unknown> | undefined {
-  const fetchers = useFetchers();
-  const data: Record<string, unknown> = {};
+  const fetchers = useFetchers()
+  const data: Record<string, unknown> = {}
 
   for (const fetcher of fetchers) {
-    const formData = fetcher.submission?.formData;
-    const fetcherData = fetcher.data;
+    const formData = fetcher.submission?.formData
+    const fetcherData = fetcher.data
     if (
       formData &&
       formData.get(formDataKey) === formDataValue &&
       fetcherData &&
       fetcherData[dataKey]
     ) {
-      Object.assign(data, fetcherData[dataKey]);
+      Object.assign(data, fetcherData[dataKey])
 
       try {
         if (formData.get(dataKey)) {
-          const dataInForm: unknown = JSON.parse(String(formData.get(dataKey)));
-          Object.assign(data, dataInForm);
+          const dataInForm: unknown = JSON.parse(String(formData.get(dataKey)))
+          Object.assign(data, dataInForm)
         }
       } catch {
         // do nothing
       }
     }
   }
-  return Object.keys(data).length ? data : undefined;
+  return Object.keys(data).length ? data : undefined
 }

@@ -2,7 +2,7 @@ import {
   type EnhancedMenu,
   type EnhancedMenuItem,
   useIsHomePath,
-} from '~/lib/utils';
+} from '~/lib/utils'
 import {
   Drawer,
   useDrawer,
@@ -20,21 +20,21 @@ import {
   Cart,
   CartLoading,
   Link,
-} from '~/components';
-import {useParams, Form, Await, useMatches} from '@remix-run/react';
-import {useWindowScroll} from 'react-use';
-import {Disclosure} from '@headlessui/react';
-import {Suspense, useEffect, useMemo} from 'react';
-import {useIsHydrated} from '~/hooks/useIsHydrated';
-import {useCartFetchers} from '~/hooks/useCartFetchers';
-import type {LayoutData} from '../root';
+} from '~/components'
+import { useParams, Form, Await, useMatches } from '@remix-run/react'
+import { useWindowScroll } from 'react-use'
+import { Disclosure } from '@headlessui/react'
+import { Suspense, useEffect, useMemo } from 'react'
+import { useIsHydrated } from '~/hooks/useIsHydrated'
+import { useCartFetchers } from '~/hooks/useCartFetchers'
+import type { LayoutData } from '../root'
 
 export function Layout({
   children,
   layout,
 }: {
-  children: React.ReactNode;
-  layout: LayoutData;
+  children: React.ReactNode
+  layout: LayoutData
 }) {
   return (
     <>
@@ -54,31 +54,31 @@ export function Layout({
       </div>
       <Footer menu={layout?.footerMenu} />
     </>
-  );
+  )
 }
 
-function Header({title, menu}: {title: string; menu?: EnhancedMenu}) {
-  const isHome = useIsHomePath();
+function Header({ title, menu }: { title: string; menu?: EnhancedMenu }) {
+  const isHome = useIsHomePath()
 
   const {
     isOpen: isCartOpen,
     openDrawer: openCart,
     closeDrawer: closeCart,
-  } = useDrawer();
+  } = useDrawer()
 
   const {
     isOpen: isMenuOpen,
     openDrawer: openMenu,
     closeDrawer: closeMenu,
-  } = useDrawer();
+  } = useDrawer()
 
-  const addToCartFetchers = useCartFetchers('ADD_TO_CART');
+  const addToCartFetchers = useCartFetchers('ADD_TO_CART')
 
   // toggle cart drawer when adding to cart
   useEffect(() => {
-    if (isCartOpen || !addToCartFetchers.length) return;
-    openCart();
-  }, [addToCartFetchers, isCartOpen, openCart]);
+    if (isCartOpen || !addToCartFetchers.length) return
+    openCart()
+  }, [addToCartFetchers, isCartOpen, openCart])
 
   return (
     <>
@@ -99,11 +99,17 @@ function Header({title, menu}: {title: string; menu?: EnhancedMenu}) {
         openMenu={openMenu}
       />
     </>
-  );
+  )
 }
 
-function CartDrawer({isOpen, onClose}: {isOpen: boolean; onClose: () => void}) {
-  const [root] = useMatches();
+function CartDrawer({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
+  const [root] = useMatches()
 
   return (
     <Drawer open={isOpen} onClose={onClose} heading="Cart" openFrom="right">
@@ -115,7 +121,7 @@ function CartDrawer({isOpen, onClose}: {isOpen: boolean; onClose: () => void}) {
         </Suspense>
       </div>
     </Drawer>
-  );
+  )
 }
 
 export function MenuDrawer({
@@ -123,9 +129,9 @@ export function MenuDrawer({
   onClose,
   menu,
 }: {
-  isOpen: boolean;
-  onClose: () => void;
-  menu: EnhancedMenu;
+  isOpen: boolean
+  onClose: () => void
+  menu: EnhancedMenu
 }) {
   return (
     <Drawer open={isOpen} onClose={onClose} openFrom="left" heading="Menu">
@@ -133,15 +139,15 @@ export function MenuDrawer({
         <MenuMobileNav menu={menu} onClose={onClose} />
       </div>
     </Drawer>
-  );
+  )
 }
 
 function MenuMobileNav({
   menu,
   onClose,
 }: {
-  menu: EnhancedMenu;
-  onClose: () => void;
+  menu: EnhancedMenu
+  onClose: () => void
 }) {
   return (
     <nav className="grid gap-4 p-6 sm:gap-6 sm:px-12 sm:py-8">
@@ -152,7 +158,7 @@ function MenuMobileNav({
             to={item.to}
             target={item.target}
             onClick={onClose}
-            className={({isActive}) =>
+            className={({ isActive }) =>
               isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
             }
           >
@@ -163,7 +169,7 @@ function MenuMobileNav({
         </span>
       ))}
     </nav>
-  );
+  )
 }
 
 function MobileHeader({
@@ -172,14 +178,14 @@ function MobileHeader({
   openCart,
   openMenu,
 }: {
-  title: string;
-  isHome: boolean;
-  openCart: () => void;
-  openMenu: () => void;
+  title: string
+  isHome: boolean
+  openCart: () => void
+  openMenu: () => void
 }) {
   // useHeaderStyleFix(containerStyle, setContainerStyle, isHome);
 
-  const params = useParams();
+  const params = useParams()
 
   return (
     <header
@@ -236,7 +242,7 @@ function MobileHeader({
         <CartCount isHome={isHome} openCart={openCart} />
       </div>
     </header>
-  );
+  )
 }
 
 function DesktopHeader({
@@ -245,13 +251,13 @@ function DesktopHeader({
   openCart,
   title,
 }: {
-  isHome: boolean;
-  openCart: () => void;
-  menu?: EnhancedMenu;
-  title: string;
+  isHome: boolean
+  openCart: () => void
+  menu?: EnhancedMenu
+  title: string
 }) {
-  const params = useParams();
-  const {y} = useWindowScroll();
+  const params = useParams()
+  const { y } = useWindowScroll()
   return (
     <header
       role="banner"
@@ -275,7 +281,7 @@ function DesktopHeader({
               to={item.to}
               target={item.target}
               prefetch="intent"
-              className={({isActive}) =>
+              className={({ isActive }) =>
                 isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
               }
             >
@@ -312,12 +318,12 @@ function DesktopHeader({
         <CartCount isHome={isHome} openCart={openCart} />
       </div>
     </header>
-  );
+  )
 }
 
-function AccountLink({className}: {className?: string}) {
-  const [root] = useMatches();
-  const isLoggedIn = root.data?.isLoggedIn;
+function AccountLink({ className }: { className?: string }) {
+  const [root] = useMatches()
+  const isLoggedIn = root.data?.isLoggedIn
   return isLoggedIn ? (
     <Link to="/account" className={className}>
       <IconAccount />
@@ -326,17 +332,17 @@ function AccountLink({className}: {className?: string}) {
     <Link to="/account/login" className={className}>
       <IconLogin />
     </Link>
-  );
+  )
 }
 
 function CartCount({
   isHome,
   openCart,
 }: {
-  isHome: boolean;
-  openCart: () => void;
+  isHome: boolean
+  openCart: () => void
 }) {
-  const [root] = useMatches();
+  const [root] = useMatches()
 
   return (
     <Suspense fallback={<Badge count={0} dark={isHome} openCart={openCart} />}>
@@ -350,7 +356,7 @@ function CartCount({
         )}
       </Await>
     </Suspense>
-  );
+  )
 }
 
 function Badge({
@@ -358,11 +364,11 @@ function Badge({
   dark,
   count,
 }: {
-  count: number;
-  dark: boolean;
-  openCart: () => void;
+  count: number
+  dark: boolean
+  openCart: () => void
 }) {
-  const isHydrated = useIsHydrated();
+  const isHydrated = useIsHydrated()
 
   const BadgeCounter = useMemo(
     () => (
@@ -379,8 +385,8 @@ function Badge({
         </div>
       </>
     ),
-    [count, dark],
-  );
+    [count, dark]
+  )
 
   return isHydrated ? (
     <button
@@ -396,16 +402,16 @@ function Badge({
     >
       {BadgeCounter}
     </Link>
-  );
+  )
 }
 
-function Footer({menu}: {menu?: EnhancedMenu}) {
-  const isHome = useIsHomePath();
+function Footer({ menu }: { menu?: EnhancedMenu }) {
+  const isHome = useIsHomePath()
   const itemsCount = menu
     ? menu?.items?.length + 1 > 4
       ? 4
       : menu?.items?.length + 1
-    : [];
+    : []
 
   return (
     <Section
@@ -424,37 +430,37 @@ function Footer({menu}: {menu?: EnhancedMenu}) {
         Licensed Open Source project.
       </div>
     </Section>
-  );
+  )
 }
 
-const FooterLink = ({item}: {item: EnhancedMenuItem}) => {
+const FooterLink = ({ item }: { item: EnhancedMenuItem }) => {
   if (item.to.startsWith('http')) {
     return (
       <a href={item.to} target={item.target} rel="noopener noreferrer">
         {item.title}
       </a>
-    );
+    )
   }
 
   return (
     <Link to={item.to} target={item.target} prefetch="intent">
       {item.title}
     </Link>
-  );
-};
+  )
+}
 
-function FooterMenu({menu}: {menu?: EnhancedMenu}) {
+function FooterMenu({ menu }: { menu?: EnhancedMenu }) {
   const styles = {
     section: 'grid gap-4',
     nav: 'grid gap-2 pb-6',
-  };
+  }
 
   return (
     <>
       {(menu?.items || []).map((item: EnhancedMenuItem) => (
         <section key={item.id} className={styles.section}>
           <Disclosure>
-            {({open}) => (
+            {({ open }) => (
               <>
                 <Disclosure.Button className="text-left md:cursor-default">
                   <Heading className="flex justify-between" size="lead" as="h3">
@@ -489,5 +495,5 @@ function FooterMenu({menu}: {menu?: EnhancedMenu}) {
         </section>
       ))}
     </>
-  );
+  )
 }

@@ -1,23 +1,23 @@
-import {json, type MetaFunction, type LoaderArgs} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
-import {PageHeader, Section, Button} from '~/components';
-import invariant from 'tiny-invariant';
-import {ShopPolicy} from '@shopify/hydrogen/storefront-api-types';
-import {routeHeaders, CACHE_LONG} from '~/data/cache';
-import {seoPayload} from '~/lib/seo.server';
+import { json, type MetaFunction, type LoaderArgs } from '@shopify/remix-oxygen'
+import { useLoaderData } from '@remix-run/react'
+import { PageHeader, Section, Button } from '~/components'
+import invariant from 'tiny-invariant'
+import { ShopPolicy } from '@shopify/hydrogen/storefront-api-types'
+import { routeHeaders, CACHE_LONG } from '~/data/cache'
+import { seoPayload } from '~/lib/seo.server'
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-export async function loader({request, params, context}: LoaderArgs) {
-  invariant(params.policyHandle, 'Missing policy handle');
-  const handle = params.policyHandle;
+export async function loader({ request, params, context }: LoaderArgs) {
+  invariant(params.policyHandle, 'Missing policy handle')
+  const handle = params.policyHandle
 
   const policyName = handle.replace(/-([a-z])/g, (_: unknown, m1: string) =>
-    m1.toUpperCase(),
-  );
+    m1.toUpperCase()
+  )
 
   const data = await context.storefront.query<{
-    shop: Record<string, ShopPolicy>;
+    shop: Record<string, ShopPolicy>
   }>(POLICY_CONTENT_QUERY, {
     variables: {
       privacyPolicy: false,
@@ -27,29 +27,29 @@ export async function loader({request, params, context}: LoaderArgs) {
       [policyName]: true,
       language: context.storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'No data returned from Shopify API');
-  const policy = data.shop?.[policyName];
+  invariant(data, 'No data returned from Shopify API')
+  const policy = data.shop?.[policyName]
 
   if (!policy) {
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 })
   }
 
-  const seo = seoPayload.policy({policy, url: request.url});
+  const seo = seoPayload.policy({ policy, url: request.url })
 
   return json(
-    {policy, seo},
+    { policy, seo },
     {
       headers: {
         'Cache-Control': CACHE_LONG,
       },
-    },
-  );
+    }
+  )
 }
 
 export default function Policies() {
-  const {policy} = useLoaderData<typeof loader>();
+  const { policy } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -72,13 +72,13 @@ export default function Policies() {
         </PageHeader>
         <div className="flex-grow w-full md:w-7/12">
           <div
-            dangerouslySetInnerHTML={{__html: policy.body}}
+            dangerouslySetInnerHTML={{ __html: policy.body }}
             className="prose dark:prose-invert"
           />
         </div>
       </Section>
     </>
-  );
+  )
 }
 
 const POLICY_CONTENT_QUERY = `#graphql
@@ -112,4 +112,4 @@ const POLICY_CONTENT_QUERY = `#graphql
       }
     }
   }
-`;
+`

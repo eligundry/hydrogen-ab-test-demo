@@ -1,7 +1,7 @@
-import {Fragment, useState} from 'react';
-import {Dialog, Transition} from '@headlessui/react';
+import { Fragment, useState } from 'react'
+import { Dialog, Transition } from '@headlessui/react'
 
-import {Heading, IconClose} from '~/components';
+import { Heading, IconClose } from '~/components'
 
 /**
  * Drawer component that opens on user click.
@@ -18,16 +18,16 @@ export function Drawer({
   openFrom = 'right',
   children,
 }: {
-  heading?: string;
-  open: boolean;
-  onClose: () => void;
-  openFrom: 'right' | 'left';
-  children: React.ReactNode;
+  heading?: string
+  open: boolean
+  onClose: () => void
+  openFrom: 'right' | 'left'
+  children: React.ReactNode
 }) {
   const offScreen = {
     right: 'translate-x-full',
     left: '-translate-x-full',
-  };
+  }
 
   return (
     <Transition appear show={open} as={Fragment}>
@@ -90,26 +90,26 @@ export function Drawer({
         </div>
       </Dialog>
     </Transition>
-  );
+  )
 }
 
 /* Use for associating arialabelledby with the title*/
-Drawer.Title = Dialog.Title;
+Drawer.Title = Dialog.Title
 
 export function useDrawer(openDefault = false) {
-  const [isOpen, setIsOpen] = useState(openDefault);
+  const [isOpen, setIsOpen] = useState(openDefault)
 
   function openDrawer() {
-    setIsOpen(true);
+    setIsOpen(true)
   }
 
   function closeDrawer() {
-    setIsOpen(false);
+    setIsOpen(false)
   }
 
   return {
     isOpen,
     openDrawer,
     closeDrawer,
-  };
+  }
 }

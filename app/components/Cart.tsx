@@ -1,7 +1,7 @@
-import clsx from 'clsx';
-import {useRef} from 'react';
-import {useScroll} from 'react-use';
-import {flattenConnection, Image, Money} from '@shopify/hydrogen';
+import clsx from 'clsx'
+import { useRef } from 'react'
+import { useScroll } from 'react-use'
+import { flattenConnection, Image, Money } from '@shopify/hydrogen'
 import {
   Button,
   Heading,
@@ -9,51 +9,51 @@ import {
   Text,
   Link,
   FeaturedProducts,
-} from '~/components';
-import {getInputStyleClasses} from '~/lib/utils';
+} from '~/components'
+import { getInputStyleClasses } from '~/lib/utils'
 import type {
   Cart as CartType,
   CartCost,
   CartLine,
   CartLineUpdateInput,
-} from '@shopify/hydrogen/storefront-api-types';
-import {useFetcher} from '@remix-run/react';
-import {CartAction} from '~/lib/type';
+} from '@shopify/hydrogen/storefront-api-types'
+import { useFetcher } from '@remix-run/react'
+import { CartAction } from '~/lib/type'
 
-type Layouts = 'page' | 'drawer';
+type Layouts = 'page' | 'drawer'
 
 export function Cart({
   layout,
   onClose,
   cart,
 }: {
-  layout: Layouts;
-  onClose?: () => void;
-  cart: CartType | null;
+  layout: Layouts
+  onClose?: () => void
+  cart: CartType | null
 }) {
-  const linesCount = Boolean(cart?.lines?.edges?.length || 0);
+  const linesCount = Boolean(cart?.lines?.edges?.length || 0)
 
   return (
     <>
       <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />
       <CartDetails cart={cart} layout={layout} />
     </>
-  );
+  )
 }
 
 export function CartDetails({
   layout,
   cart,
 }: {
-  layout: Layouts;
-  cart: CartType | null;
+  layout: Layouts
+  cart: CartType | null
 }) {
   // @todo: get optimistic cart cost
-  const cartHasItems = !!cart && cart.totalQuantity > 0;
+  const cartHasItems = !!cart && cart.totalQuantity > 0
   const container = {
     drawer: 'grid grid-cols-1 h-screen-no-nav grid-rows-[1fr_auto]',
     page: 'w-full pb-12 grid md:grid-cols-2 md:items-start gap-8 md:gap-8 lg:gap-12',
-  };
+  }
 
   return (
     <div className={container[layout]}>
@@ -65,7 +65,7 @@ export function CartDetails({
         </CartSummary>
       )}
     </div>
-  );
+  )
 }
 
 /**
@@ -76,9 +76,9 @@ export function CartDetails({
 function CartDiscounts({
   discountCodes,
 }: {
-  discountCodes: CartType['discountCodes'];
+  discountCodes: CartType['discountCodes']
 }) {
-  const codes = discountCodes?.map(({code}) => code).join(', ') || null;
+  const codes = discountCodes?.map(({ code }) => code).join(', ') || null
 
   return (
     <>
@@ -91,7 +91,7 @@ function CartDiscounts({
               <button>
                 <IconRemove
                   aria-hidden="true"
-                  style={{height: 18, marginRight: 4}}
+                  style={{ height: 18, marginRight: 4 }}
                 />
               </button>
             </UpdateDiscountForm>
@@ -105,7 +105,7 @@ function CartDiscounts({
         <div
           className={clsx(
             codes ? 'hidden' : 'flex',
-            'items-center gap-4 justify-between text-copy',
+            'items-center gap-4 justify-between text-copy'
           )}
         >
           <input
@@ -120,11 +120,11 @@ function CartDiscounts({
         </div>
       </UpdateDiscountForm>
     </>
-  );
+  )
 }
 
-function UpdateDiscountForm({children}: {children: React.ReactNode}) {
-  const fetcher = useFetcher();
+function UpdateDiscountForm({ children }: { children: React.ReactNode }) {
+  const fetcher = useFetcher()
   return (
     <fetcher.Form action="/cart" method="post">
       <input
@@ -134,26 +134,26 @@ function UpdateDiscountForm({children}: {children: React.ReactNode}) {
       />
       {children}
     </fetcher.Form>
-  );
+  )
 }
 
 function CartLines({
   layout = 'drawer',
   lines: cartLines,
 }: {
-  layout: Layouts;
-  lines: CartType['lines'] | undefined;
+  layout: Layouts
+  lines: CartType['lines'] | undefined
 }) {
-  const currentLines = cartLines ? flattenConnection(cartLines) : [];
-  const scrollRef = useRef(null);
-  const {y} = useScroll(scrollRef);
+  const currentLines = cartLines ? flattenConnection(cartLines) : []
+  const scrollRef = useRef(null)
+  const { y } = useScroll(scrollRef)
 
   const className = clsx([
     y > 0 ? 'border-t' : '',
     layout === 'page'
       ? 'flex-grow md:translate-y-4'
       : 'px-6 pb-6 sm-max:pt-2 overflow-auto transition md:px-12',
-  ]);
+  ])
 
   return (
     <section
@@ -167,11 +167,11 @@ function CartLines({
         ))}
       </ul>
     </section>
-  );
+  )
 }
 
-function CartCheckoutActions({checkoutUrl}: {checkoutUrl: string}) {
-  if (!checkoutUrl) return null;
+function CartCheckoutActions({ checkoutUrl }: { checkoutUrl: string }) {
+  if (!checkoutUrl) return null
 
   return (
     <div className="flex flex-col mt-2">
@@ -182,7 +182,7 @@ function CartCheckoutActions({checkoutUrl}: {checkoutUrl: string}) {
       </a>
       {/* @todo: <CartShopPayButton cart={cart} /> */}
     </div>
-  );
+  )
 }
 
 function CartSummary({
@@ -190,14 +190,14 @@ function CartSummary({
   layout,
   children = null,
 }: {
-  children?: React.ReactNode;
-  cost: CartCost;
-  layout: Layouts;
+  children?: React.ReactNode
+  cost: CartCost
+  layout: Layouts
 }) {
   const summary = {
     drawer: 'grid gap-4 p-6 border-t md:px-12',
     page: 'sticky top-nav grid gap-6 p-4 md:px-6 md:translate-y-4 bg-primary/5 rounded w-full',
-  };
+  }
 
   return (
     <section aria-labelledby="summary-heading" className={summary[layout]}>
@@ -218,15 +218,15 @@ function CartSummary({
       </dl>
       {children}
     </section>
-  );
+  )
 }
 
-function CartLineItem({line}: {line: CartLine}) {
-  if (!line?.id) return null;
+function CartLineItem({ line }: { line: CartLine }) {
+  if (!line?.id) return null
 
-  const {id, quantity, merchandise} = line;
+  const { id, quantity, merchandise } = line
 
-  if (typeof quantity === 'undefined' || !merchandise?.product) return null;
+  if (typeof quantity === 'undefined' || !merchandise?.product) return null
 
   return (
     <li key={id} className="flex gap-4">
@@ -274,11 +274,11 @@ function CartLineItem({line}: {line: CartLine}) {
         </Text>
       </div>
     </li>
-  );
+  )
 }
 
-function ItemRemoveButton({lineIds}: {lineIds: CartLine['id'][]}) {
-  const fetcher = useFetcher();
+function ItemRemoveButton({ lineIds }: { lineIds: CartLine['id'][] }) {
+  const fetcher = useFetcher()
 
   return (
     <fetcher.Form action="/cart" method="post">
@@ -296,14 +296,14 @@ function ItemRemoveButton({lineIds}: {lineIds: CartLine['id'][]}) {
         <IconRemove aria-hidden="true" />
       </button>
     </fetcher.Form>
-  );
+  )
 }
 
-function CartLineQuantityAdjust({line}: {line: CartLine}) {
-  if (!line || typeof line?.quantity === 'undefined') return null;
-  const {id: lineId, quantity} = line;
-  const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
-  const nextQuantity = Number((quantity + 1).toFixed(0));
+function CartLineQuantityAdjust({ line }: { line: CartLine }) {
+  if (!line || typeof line?.quantity === 'undefined') return null
+  const { id: lineId, quantity } = line
+  const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0))
+  const nextQuantity = Number((quantity + 1).toFixed(0))
 
   return (
     <>
@@ -311,7 +311,7 @@ function CartLineQuantityAdjust({line}: {line: CartLine}) {
         Quantity, {quantity}
       </label>
       <div className="flex items-center border rounded">
-        <UpdateCartButton lines={[{id: lineId, quantity: prevQuantity}]}>
+        <UpdateCartButton lines={[{ id: lineId, quantity: prevQuantity }]}>
           <button
             name="decrease-quantity"
             aria-label="Decrease quantity"
@@ -327,7 +327,7 @@ function CartLineQuantityAdjust({line}: {line: CartLine}) {
           {quantity}
         </div>
 
-        <UpdateCartButton lines={[{id: lineId, quantity: nextQuantity}]}>
+        <UpdateCartButton lines={[{ id: lineId, quantity: nextQuantity }]}>
           <button
             className="w-10 h-10 transition text-primary/50 hover:text-primary"
             name="increase-quantity"
@@ -339,17 +339,17 @@ function CartLineQuantityAdjust({line}: {line: CartLine}) {
         </UpdateCartButton>
       </div>
     </>
-  );
+  )
 }
 
 function UpdateCartButton({
   children,
   lines,
 }: {
-  children: React.ReactNode;
-  lines: CartLineUpdateInput[];
+  children: React.ReactNode
+  lines: CartLineUpdateInput[]
 }) {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher()
 
   return (
     <fetcher.Form action="/cart" method="post">
@@ -357,7 +357,7 @@ function UpdateCartButton({
       <input type="hidden" name="lines" value={JSON.stringify(lines)} />
       {children}
     </fetcher.Form>
-  );
+  )
 }
 
 function CartLinePrice({
@@ -365,22 +365,22 @@ function CartLinePrice({
   priceType = 'regular',
   ...passthroughProps
 }: {
-  line: CartLine;
-  priceType?: 'regular' | 'compareAt';
-  [key: string]: any;
+  line: CartLine
+  priceType?: 'regular' | 'compareAt'
+  [key: string]: any
 }) {
-  if (!line?.cost?.amountPerQuantity || !line?.cost?.totalAmount) return null;
+  if (!line?.cost?.amountPerQuantity || !line?.cost?.totalAmount) return null
 
   const moneyV2 =
     priceType === 'regular'
       ? line.cost.totalAmount
-      : line.cost.compareAtAmountPerQuantity;
+      : line.cost.compareAtAmountPerQuantity
 
   if (moneyV2 == null) {
-    return null;
+    return null
   }
 
-  return <Money withoutTrailingZeros {...passthroughProps} data={moneyV2} />;
+  return <Money withoutTrailingZeros {...passthroughProps} data={moneyV2} />
 }
 
 export function CartEmpty({
@@ -388,12 +388,12 @@ export function CartEmpty({
   layout = 'drawer',
   onClose,
 }: {
-  hidden: boolean;
-  layout?: Layouts;
-  onClose?: () => void;
+  hidden: boolean
+  layout?: Layouts
+  onClose?: () => void
 }) {
-  const scrollRef = useRef(null);
-  const {y} = useScroll(scrollRef);
+  const scrollRef = useRef(null)
+  const { y } = useScroll(scrollRef)
 
   const container = {
     drawer: clsx([
@@ -404,7 +404,7 @@ export function CartEmpty({
       hidden ? '' : 'grid',
       `pb-12 w-full md:items-start gap-4 md:gap-8 lg:gap-12`,
     ]),
-  };
+  }
 
   return (
     <div ref={scrollRef} className={container[layout]} hidden={hidden}>
@@ -427,5 +427,5 @@ export function CartEmpty({
         />
       </section>
     </div>
-  );
+  )
 }

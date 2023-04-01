@@ -1,15 +1,15 @@
-import {Product} from '@shopify/hydrogen/storefront-api-types';
+import { Product } from '@shopify/hydrogen/storefront-api-types'
 
 // Demo store placeholders
 const PLACEHOLDERS = {
   HEROS: [
     // primaryHero
     {
-      heading: {value: 'All Mountain All Season'},
+      heading: { value: 'All Mountain All Season' },
       byline: {
         value: 'The All New Hydrogen Snowboard Exclusively From Shopify',
       },
-      cta: {value: 'Shop Now →'},
+      cta: { value: 'Shop Now →' },
       handle: 'freestyle',
       spread: {
         reference: {
@@ -49,9 +49,9 @@ const PLACEHOLDERS = {
     },
     // secondaryHero
     {
-      heading: {value: 'From the Slopes to the Chalet'},
+      heading: { value: 'From the Slopes to the Chalet' },
       byline: null,
-      cta: {value: 'Shop Now →'},
+      cta: { value: 'Shop Now →' },
       handle: 'backcountry',
       spread: {
         reference: {
@@ -88,9 +88,9 @@ const PLACEHOLDERS = {
     },
     // tertiaryHero
     {
-      heading: {value: 'The Winter 2022 Collection'},
-      byline: {value: 'Just Dropped'},
-      cta: {value: 'Shop Now →'},
+      heading: { value: 'The Winter 2022 Collection' },
+      byline: { value: 'Just Dropped' },
+      cta: { value: 'Shop Now →' },
       handle: 'winter-2022',
       spread: {
         reference: {
@@ -177,7 +177,7 @@ const PLACEHOLDERS = {
       ],
     },
   },
-};
+}
 
 /**
  * getHeroPlaceholder() returns placeholder content when the expected metafields
@@ -193,28 +193,28 @@ const PLACEHOLDERS = {
  */
 
 export function getHeroPlaceholder(heros: any[]) {
-  if (!heros?.length) return [];
+  if (!heros?.length) return []
 
   // when we pass a collection without metafields,
   // we merge it with placeholder data
   return heros.map((hero, index) => {
     // assume passed hero has metafields data already
     if (hero?.heading?.value) {
-      return hero;
+      return hero
     }
 
     // hero placeholder
-    const placeholder = PLACEHOLDERS.HEROS[index];
+    const placeholder = PLACEHOLDERS.HEROS[index]
 
     // prioritize metafield data if available, else the hero hero values
     // otherwise the placeholder values
     const byLine =
       hero?.byLine || hero?.descriptionHtml
-        ? {value: hero.descriptionHtml}
-        : placeholder.byline;
+        ? { value: hero.descriptionHtml }
+        : placeholder.byline
 
     const heading =
-      hero?.heading || hero?.title ? {value: hero.title} : placeholder.heading;
+      hero?.heading || hero?.title ? { value: hero.title } : placeholder.heading
 
     // merge hero placeholder with hero data
     return {
@@ -227,19 +227,19 @@ export function getHeroPlaceholder(heros: any[]) {
       spreadSecondary: hero?.spreadSecondary || placeholder.spreadSecondary,
       height: placeholder?.height || undefined,
       top: placeholder?.top || undefined,
-    };
-  });
+    }
+  })
 }
 
 // get product info placeholder data
 export function getProductInfoPlaceholder() {
   function getMultipleRandom(arr: any[], infos: number) {
-    const shuffled = [...arr].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, infos);
+    const shuffled = [...arr].sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, infos)
   }
-  return getMultipleRandom(PLACEHOLDERS.PRODUCT_INFO, 3);
+  return getMultipleRandom(PLACEHOLDERS.PRODUCT_INFO, 3)
 }
 
 export function getProductPlaceholder(): Product {
-  return PLACEHOLDERS.PRODUCT as unknown as Product;
+  return PLACEHOLDERS.PRODUCT as unknown as Product
 }

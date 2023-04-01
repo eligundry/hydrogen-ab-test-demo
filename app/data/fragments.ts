@@ -34,7 +34,7 @@ export const MEDIA_FRAGMENT = `#graphql
       host
     }
   }
-`;
+`
 
 export const PRODUCT_CARD_FRAGMENT = `#graphql
   fragment ProductCard on Product {
@@ -70,4 +70,4 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
       }
     }
   }
-`;
+`

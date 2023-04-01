@@ -1,8 +1,8 @@
-import type {Customer} from '@shopify/hydrogen/storefront-api-types';
-import {Link} from '~/components';
+import type { Customer } from '@shopify/hydrogen/storefront-api-types'
+import { Link } from '~/components'
 
-export function AccountDetails({customer}: {customer: Customer}) {
-  const {firstName, lastName, email, phone} = customer;
+export function AccountDetails({ customer }: { customer: Customer }) {
+  const { firstName, lastName, email, phone } = customer
 
   return (
     <>
@@ -37,5 +37,5 @@ export function AccountDetails({customer}: {customer: Customer}) {
         </div>
       </div>
     </>
-  );
+  )
 }

@@ -1,61 +1,61 @@
-import {json, redirect, type ActionFunction} from '@shopify/remix-oxygen';
+import { json, redirect, type ActionFunction } from '@shopify/remix-oxygen'
 import {
   Form,
   useActionData,
   useOutletContext,
   useParams,
   useTransition,
-} from '@remix-run/react';
-import {flattenConnection} from '@shopify/hydrogen';
+} from '@remix-run/react'
+import { flattenConnection } from '@shopify/hydrogen'
 import type {
   MailingAddressInput,
   CustomerAddressUpdatePayload,
   CustomerAddressDeletePayload,
   CustomerDefaultAddressUpdatePayload,
   CustomerAddressCreatePayload,
-} from '@shopify/hydrogen/storefront-api-types';
-import invariant from 'tiny-invariant';
-import {Button, Text} from '~/components';
-import {assertApiErrors, getInputStyleClasses} from '~/lib/utils';
-import type {AccountOutletContext} from '../edit';
+} from '@shopify/hydrogen/storefront-api-types'
+import invariant from 'tiny-invariant'
+import { Button, Text } from '~/components'
+import { assertApiErrors, getInputStyleClasses } from '~/lib/utils'
+import type { AccountOutletContext } from '../edit'
 
 interface ActionData {
-  formError?: string;
+  formError?: string
 }
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 export const handle = {
   renderInModal: true,
-};
+}
 
-export const action: ActionFunction = async ({request, context, params}) => {
-  const {storefront, session} = context;
-  const formData = await request.formData();
+export const action: ActionFunction = async ({ request, context, params }) => {
+  const { storefront, session } = context
+  const formData = await request.formData()
 
-  const customerAccessToken = await session.get('customerAccessToken');
-  invariant(customerAccessToken, 'You must be logged in to edit your account.');
+  const customerAccessToken = await session.get('customerAccessToken')
+  invariant(customerAccessToken, 'You must be logged in to edit your account.')
 
-  const addressId = formData.get('addressId');
-  invariant(typeof addressId === 'string', 'You must provide an address id.');
+  const addressId = formData.get('addressId')
+  invariant(typeof addressId === 'string', 'You must provide an address id.')
 
   if (request.method === 'DELETE') {
     try {
       const data = await storefront.mutate<{
-        customerAddressDelete: CustomerAddressDeletePayload;
+        customerAddressDelete: CustomerAddressDeletePayload
       }>(DELETE_ADDRESS_MUTATION, {
-        variables: {customerAccessToken, id: addressId},
-      });
+        variables: { customerAccessToken, id: addressId },
+      })
 
-      assertApiErrors(data.customerAddressDelete);
+      assertApiErrors(data.customerAddressDelete)
 
-      return redirect(params.lang ? `${params.lang}/account` : '/account');
+      return redirect(params.lang ? `${params.lang}/account` : '/account')
     } catch (error: any) {
-      return badRequest({formError: error.message});
+      return badRequest({ formError: error.message })
     }
   }
 
-  const address: MailingAddressInput = {};
+  const address: MailingAddressInput = {}
 
   const keys: (keyof MailingAddressInput)[] = [
     'lastName',
@@ -68,86 +68,86 @@ export const action: ActionFunction = async ({request, context, params}) => {
     'zip',
     'phone',
     'company',
-  ];
+  ]
 
   for (const key of keys) {
-    const value = formData.get(key);
+    const value = formData.get(key)
     if (typeof value === 'string') {
-      address[key] = value;
+      address[key] = value
     }
   }
 
-  const defaultAddress = formData.get('defaultAddress');
+  const defaultAddress = formData.get('defaultAddress')
 
   if (addressId === 'add') {
     try {
       const data = await storefront.mutate<{
-        customerAddressCreate: CustomerAddressCreatePayload;
+        customerAddressCreate: CustomerAddressCreatePayload
       }>(CREATE_ADDRESS_MUTATION, {
-        variables: {customerAccessToken, address},
-      });
+        variables: { customerAccessToken, address },
+      })
 
-      assertApiErrors(data.customerAddressCreate);
+      assertApiErrors(data.customerAddressCreate)
 
-      const newId = data.customerAddressCreate?.customerAddress?.id;
-      invariant(newId, 'Expected customer address to be created');
+      const newId = data.customerAddressCreate?.customerAddress?.id
+      invariant(newId, 'Expected customer address to be created')
 
       if (defaultAddress) {
         const data = await storefront.mutate<{
-          customerDefaultAddressUpdate: CustomerDefaultAddressUpdatePayload;
+          customerDefaultAddressUpdate: CustomerDefaultAddressUpdatePayload
         }>(UPDATE_DEFAULT_ADDRESS_MUTATION, {
-          variables: {customerAccessToken, addressId: newId},
-        });
+          variables: { customerAccessToken, addressId: newId },
+        })
 
-        assertApiErrors(data.customerDefaultAddressUpdate);
+        assertApiErrors(data.customerDefaultAddressUpdate)
       }
 
-      return redirect(params.lang ? `${params.lang}/account` : '/account');
+      return redirect(params.lang ? `${params.lang}/account` : '/account')
     } catch (error: any) {
-      return badRequest({formError: error.message});
+      return badRequest({ formError: error.message })
     }
   } else {
     try {
       const data = await storefront.mutate<{
-        customerAddressUpdate: CustomerAddressUpdatePayload;
+        customerAddressUpdate: CustomerAddressUpdatePayload
       }>(UPDATE_ADDRESS_MUTATION, {
         variables: {
           address,
           customerAccessToken,
           id: decodeURIComponent(addressId),
         },
-      });
+      })
 
-      assertApiErrors(data.customerAddressUpdate);
+      assertApiErrors(data.customerAddressUpdate)
 
       if (defaultAddress) {
         const data = await storefront.mutate<{
-          customerDefaultAddressUpdate: CustomerDefaultAddressUpdatePayload;
+          customerDefaultAddressUpdate: CustomerDefaultAddressUpdatePayload
         }>(UPDATE_DEFAULT_ADDRESS_MUTATION, {
           variables: {
             customerAccessToken,
             addressId: decodeURIComponent(addressId),
           },
-        });
+        })
 
-        assertApiErrors(data.customerDefaultAddressUpdate);
+        assertApiErrors(data.customerDefaultAddressUpdate)
       }
 
-      return redirect(params.lang ? `${params.lang}/account` : '/account');
+      return redirect(params.lang ? `${params.lang}/account` : '/account')
     } catch (error: any) {
-      return badRequest({formError: error.message});
+      return badRequest({ formError: error.message })
     }
   }
-};
+}
 
 export default function EditAddress() {
-  const {id: addressId} = useParams();
-  const isNewAddress = addressId === 'add';
-  const actionData = useActionData<ActionData>();
-  const transition = useTransition();
-  const {customer} = useOutletContext<AccountOutletContext>();
-  const addresses = flattenConnection(customer.addresses);
-  const defaultAddress = customer.defaultAddress;
+  const { id: addressId } = useParams()
+  const isNewAddress = addressId === 'add'
+  const actionData = useActionData<ActionData>()
+  const transition = useTransition()
+  const { customer } = useOutletContext<AccountOutletContext>()
+  const addresses = flattenConnection(customer.addresses)
+  const defaultAddress = customer.defaultAddress
   /**
    * When a refresh happens (or a user visits this link directly), the URL
    * is actually stale because it contains a special token. This means the data
@@ -155,10 +155,10 @@ export default function EditAddress() {
    * and we don't find a match. We update the `find` logic to just perform a match
    * on the first (permanent) part of the ID.
    */
-  const normalizedAddress = decodeURIComponent(addressId ?? '').split('?')[0];
+  const normalizedAddress = decodeURIComponent(addressId ?? '').split('?')[0]
   const address = addresses.find((address) =>
-    address.id!.startsWith(normalizedAddress),
-  );
+    address.id!.startsWith(normalizedAddress)
+  )
 
   return (
     <>
@@ -341,7 +341,7 @@ export default function EditAddress() {
         </Form>
       </div>
     </>
-  );
+  )
 }
 
 const UPDATE_ADDRESS_MUTATION = `#graphql
@@ -362,7 +362,7 @@ const UPDATE_ADDRESS_MUTATION = `#graphql
       }
     }
   }
-`;
+`
 
 const DELETE_ADDRESS_MUTATION = `#graphql
   mutation customerAddressDelete($customerAccessToken: String!, $id: ID!) {
@@ -375,7 +375,7 @@ const DELETE_ADDRESS_MUTATION = `#graphql
       deletedCustomerAddressId
     }
   }
-`;
+`
 
 const UPDATE_DEFAULT_ADDRESS_MUTATION = `#graphql
   mutation customerDefaultAddressUpdate(
@@ -393,7 +393,7 @@ const UPDATE_DEFAULT_ADDRESS_MUTATION = `#graphql
       }
     }
   }
-`;
+`
 
 const CREATE_ADDRESS_MUTATION = `#graphql
   mutation customerAddressCreate(
@@ -414,4 +414,4 @@ const CREATE_ADDRESS_MUTATION = `#graphql
       }
     }
   }
-`;
+`

@@ -4,36 +4,36 @@ import {
   json,
   type ActionFunction,
   type LoaderArgs,
-} from '@shopify/remix-oxygen';
-import {Form, useActionData} from '@remix-run/react';
-import {useState} from 'react';
-import {getInputStyleClasses} from '~/lib/utils';
-import {doLogin} from './login';
-import type {CustomerCreatePayload} from '@shopify/hydrogen/storefront-api-types';
-import {Link} from '~/components';
+} from '@shopify/remix-oxygen'
+import { Form, useActionData } from '@remix-run/react'
+import { useState } from 'react'
+import { getInputStyleClasses } from '~/lib/utils'
+import { doLogin } from './login'
+import type { CustomerCreatePayload } from '@shopify/hydrogen/storefront-api-types'
+import { Link } from '~/components'
 
-export async function loader({context, params}: LoaderArgs) {
-  const customerAccessToken = await context.session.get('customerAccessToken');
+export async function loader({ context, params }: LoaderArgs) {
+  const customerAccessToken = await context.session.get('customerAccessToken')
 
   if (customerAccessToken) {
-    return redirect(params.lang ? `${params.lang}/account` : '/account');
+    return redirect(params.lang ? `${params.lang}/account` : '/account')
   }
 
-  return new Response(null);
+  return new Response(null)
 }
 
 type ActionData = {
-  formError?: string;
-};
+  formError?: string
+}
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
-export const action: ActionFunction = async ({request, context, params}) => {
-  const {session, storefront} = context;
-  const formData = await request.formData();
+export const action: ActionFunction = async ({ request, context, params }) => {
+  const { session, storefront } = context
+  const formData = await request.formData()
 
-  const email = formData.get('email');
-  const password = formData.get('password');
+  const email = formData.get('email')
+  const password = formData.get('password')
 
   if (
     !email ||
@@ -43,38 +43,38 @@ export const action: ActionFunction = async ({request, context, params}) => {
   ) {
     return badRequest({
       formError: 'Please provide both an email and a password.',
-    });
+    })
   }
 
   try {
     const data = await storefront.mutate<{
-      customerCreate: CustomerCreatePayload;
+      customerCreate: CustomerCreatePayload
     }>(CUSTOMER_CREATE_MUTATION, {
       variables: {
-        input: {email, password},
+        input: { email, password },
       },
-    });
+    })
 
     if (!data?.customerCreate?.customer?.id) {
       /**
        * Something is wrong with the user's input.
        */
-      throw new Error(data?.customerCreate?.customerUserErrors.join(', '));
+      throw new Error(data?.customerCreate?.customerUserErrors.join(', '))
     }
 
-    const customerAccessToken = await doLogin(context, {email, password});
-    session.set('customerAccessToken', customerAccessToken);
+    const customerAccessToken = await doLogin(context, { email, password })
+    session.set('customerAccessToken', customerAccessToken)
 
     return redirect(params.lang ? `${params.lang}/account` : '/account', {
       headers: {
         'Set-Cookie': await session.commit(),
       },
-    });
+    })
   } catch (error: any) {
     if (storefront.isApiError(error)) {
       return badRequest({
         formError: 'Something went wrong. Please try again later.',
-      });
+      })
     }
 
     /**
@@ -84,22 +84,22 @@ export const action: ActionFunction = async ({request, context, params}) => {
     return badRequest({
       formError:
         'Sorry. We could not create an account with this email. User might already exist, try to login instead.',
-    });
+    })
   }
-};
+}
 
 export const meta: MetaFunction = () => {
   return {
     title: 'Register',
-  };
-};
+  }
+}
 
 export default function Register() {
-  const actionData = useActionData<ActionData>();
-  const [nativeEmailError, setNativeEmailError] = useState<null | string>(null);
+  const actionData = useActionData<ActionData>()
+  const [nativeEmailError, setNativeEmailError] = useState<null | string>(null)
   const [nativePasswordError, setNativePasswordError] = useState<null | string>(
-    null,
-  );
+    null
+  )
 
   return (
     <div className="flex justify-center my-24 px-4">
@@ -133,8 +133,8 @@ export default function Register() {
                   event.currentTarget.value.length &&
                     !event.currentTarget.validity.valid
                     ? 'Invalid email address'
-                    : null,
-                );
+                    : null
+                )
               }}
             />
             {nativeEmailError && (
@@ -159,13 +159,13 @@ export default function Register() {
                   event.currentTarget.validity.valid ||
                   !event.currentTarget.value.length
                 ) {
-                  setNativePasswordError(null);
+                  setNativePasswordError(null)
                 } else {
                   setNativePasswordError(
                     event.currentTarget.validity.valueMissing
                       ? 'Please enter a password'
-                      : 'Passwords must be at least 8 characters',
-                  );
+                      : 'Passwords must be at least 8 characters'
+                  )
                 }
               }}
             />
@@ -196,7 +196,7 @@ export default function Register() {
         </Form>
       </div>
     </div>
-  );
+  )
 }
 
 const CUSTOMER_CREATE_MUTATION = `#graphql
@@ -212,4 +212,4 @@ const CUSTOMER_CREATE_MUTATION = `#graphql
       }
     }
   }
-`;
+`

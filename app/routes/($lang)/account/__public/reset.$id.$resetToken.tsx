@@ -3,22 +3,22 @@ import {
   redirect,
   type MetaFunction,
   type ActionFunction,
-} from '@shopify/remix-oxygen';
-import {Form, useActionData} from '@remix-run/react';
-import {useRef, useState} from 'react';
-import {getInputStyleClasses} from '~/lib/utils';
-import type {CustomerResetPayload} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/remix-oxygen'
+import { Form, useActionData } from '@remix-run/react'
+import { useRef, useState } from 'react'
+import { getInputStyleClasses } from '~/lib/utils'
+import type { CustomerResetPayload } from '@shopify/hydrogen/storefront-api-types'
 
 type ActionData = {
-  formError?: string;
-};
+  formError?: string
+}
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 export const action: ActionFunction = async ({
   request,
   context,
-  params: {lang, id, resetToken},
+  params: { lang, id, resetToken },
 }) => {
   if (
     !id ||
@@ -28,13 +28,13 @@ export const action: ActionFunction = async ({
   ) {
     return badRequest({
       formError: 'Wrong token. Please try to reset your password again.',
-    });
+    })
   }
 
-  const formData = await request.formData();
+  const formData = await request.formData()
 
-  const password = formData.get('password');
-  const passwordConfirm = formData.get('passwordConfirm');
+  const password = formData.get('password')
+  const passwordConfirm = formData.get('passwordConfirm')
 
   if (
     !password ||
@@ -45,46 +45,45 @@ export const action: ActionFunction = async ({
   ) {
     return badRequest({
       formError: 'Please provide matching passwords',
-    });
+    })
   }
 
-  const {session, storefront} = context;
+  const { session, storefront } = context
 
   try {
-    const data = await storefront.mutate<{customerReset: CustomerResetPayload}>(
-      CUSTOMER_RESET_MUTATION,
-      {
-        variables: {
-          id: `gid://shopify/Customer/${id}`,
-          input: {
-            password,
-            resetToken,
-          },
+    const data = await storefront.mutate<{
+      customerReset: CustomerResetPayload
+    }>(CUSTOMER_RESET_MUTATION, {
+      variables: {
+        id: `gid://shopify/Customer/${id}`,
+        input: {
+          password,
+          resetToken,
         },
       },
-    );
+    })
 
-    const {accessToken} = data?.customerReset?.customerAccessToken ?? {};
+    const { accessToken } = data?.customerReset?.customerAccessToken ?? {}
 
     if (!accessToken) {
       /**
        * Something is wrong with the user's input.
        */
-      throw new Error(data?.customerReset?.customerUserErrors.join(', '));
+      throw new Error(data?.customerReset?.customerUserErrors.join(', '))
     }
 
-    session.set('customerAccessToken', accessToken);
+    session.set('customerAccessToken', accessToken)
 
     return redirect(lang ? `${lang}/account` : '/account', {
       headers: {
         'Set-Cookie': await session.commit(),
       },
-    });
+    })
   } catch (error: any) {
     if (storefront.isApiError(error)) {
       return badRequest({
         formError: 'Something went wrong. Please try again later.',
-      });
+      })
     }
 
     /**
@@ -93,49 +92,49 @@ export const action: ActionFunction = async ({
      */
     return badRequest({
       formError: 'Sorry. We could not update your password.',
-    });
+    })
   }
-};
+}
 
 export const meta: MetaFunction = () => {
   return {
     title: 'Reset Password',
-  };
-};
+  }
+}
 
 export default function Reset() {
-  const actionData = useActionData<ActionData>();
+  const actionData = useActionData<ActionData>()
   const [nativePasswordError, setNativePasswordError] = useState<null | string>(
-    null,
-  );
+    null
+  )
   const [nativePasswordConfirmError, setNativePasswordConfirmError] = useState<
     null | string
-  >(null);
+  >(null)
 
-  const passwordInput = useRef<HTMLInputElement>(null);
-  const passwordConfirmInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null)
+  const passwordConfirmInput = useRef<HTMLInputElement>(null)
 
   const validatePasswordConfirm = () => {
-    if (!passwordConfirmInput.current) return;
+    if (!passwordConfirmInput.current) return
 
     if (
       passwordConfirmInput.current.value.length &&
       passwordConfirmInput.current.value !== passwordInput.current?.value
     ) {
-      setNativePasswordConfirmError('The two passwords entered did not match.');
+      setNativePasswordConfirmError('The two passwords entered did not match.')
     } else if (
       passwordConfirmInput.current.validity.valid ||
       !passwordConfirmInput.current.value.length
     ) {
-      setNativePasswordConfirmError(null);
+      setNativePasswordConfirmError(null)
     } else {
       setNativePasswordConfirmError(
         passwordConfirmInput.current.validity.valueMissing
           ? 'Please re-enter the password'
-          : 'Passwords must be at least 8 characters',
-      );
+          : 'Passwords must be at least 8 characters'
+      )
     }
-  };
+  }
 
   return (
     <div className="flex justify-center my-24 px-4">
@@ -172,14 +171,14 @@ export default function Reset() {
                   event.currentTarget.validity.valid ||
                   !event.currentTarget.value.length
                 ) {
-                  setNativePasswordError(null);
-                  validatePasswordConfirm();
+                  setNativePasswordError(null)
+                  validatePasswordConfirm()
                 } else {
                   setNativePasswordError(
                     event.currentTarget.validity.valueMissing
                       ? 'Please enter a password'
-                      : 'Passwords must be at least 8 characters',
-                  );
+                      : 'Passwords must be at least 8 characters'
+                  )
                 }
               }}
             />
@@ -194,7 +193,7 @@ export default function Reset() {
             <input
               ref={passwordConfirmInput}
               className={`mb-1 ${getInputStyleClasses(
-                nativePasswordConfirmError,
+                nativePasswordConfirmError
               )}`}
               id="passwordConfirm"
               name="passwordConfirm"
@@ -226,7 +225,7 @@ export default function Reset() {
         </Form>
       </div>
     </div>
-  );
+  )
 }
 
 const CUSTOMER_RESET_MUTATION = `#graphql
@@ -243,4 +242,4 @@ const CUSTOMER_RESET_MUTATION = `#graphql
       }
     }
   }
-`;
+`

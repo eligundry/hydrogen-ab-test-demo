@@ -1,20 +1,20 @@
-import clsx from 'clsx';
-import {useEffect, useId, useMemo} from 'react';
-import {useFetcher} from '@remix-run/react';
-import {Heading, ProductCard, Skeleton, Text} from '~/components';
+import clsx from 'clsx'
+import { useEffect, useId, useMemo } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { Heading, ProductCard, Skeleton, Text } from '~/components'
 import type {
   Product,
   ProductSortKeys,
-} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/hydrogen/storefront-api-types'
 
 interface FeaturedProductsProps {
-  count: number;
-  heading: string;
-  layout?: 'drawer' | 'page';
-  onClose?: () => void;
-  query?: string;
-  reverse?: boolean;
-  sortKey: ProductSortKeys;
+  count: number
+  heading: string
+  layout?: 'drawer' | 'page'
+  onClose?: () => void
+  query?: string
+  reverse?: boolean
+  sortKey: ProductSortKeys
 }
 
 /**
@@ -36,19 +36,19 @@ export function FeaturedProducts({
   reverse,
   sortKey = 'BEST_SELLING',
 }: FeaturedProductsProps) {
-  const {load, data} = useFetcher();
+  const { load, data } = useFetcher()
   const queryString = useMemo(
     () =>
-      Object.entries({count, sortKey, query, reverse})
+      Object.entries({ count, sortKey, query, reverse })
         .map(([key, val]) => (val ? `${key}=${val}` : null))
         .filter(Boolean)
         .join('&'),
-    [count, sortKey, query, reverse],
-  );
+    [count, sortKey, query, reverse]
+  )
 
   useEffect(() => {
-    load(`/api/products?${queryString}`);
-  }, [load, queryString]);
+    load(`/api/products?${queryString}`)
+  }, [load, queryString])
 
   return (
     <>
@@ -68,7 +68,7 @@ export function FeaturedProducts({
         />
       </div>
     </>
-  );
+  )
 }
 
 /**
@@ -79,11 +79,11 @@ function FeatureProductsContent({
   onClick,
   products,
 }: {
-  count: FeaturedProductsProps['count'];
-  products: Product[] | undefined;
-  onClick?: () => void;
+  count: FeaturedProductsProps['count']
+  products: Product[] | undefined
+  onClick?: () => void
 }) {
-  const id = useId();
+  const id = useId()
 
   if (!products) {
     return (
@@ -95,11 +95,11 @@ function FeatureProductsContent({
           </div>
         ))}
       </>
-    );
+    )
   }
 
   if (products?.length === 0) {
-    return <Text format>No products found.</Text>;
+    return <Text format>No products found.</Text>
   }
 
   return (
@@ -113,5 +113,5 @@ function FeatureProductsContent({
         />
       ))}
     </>
-  );
+  )
 }

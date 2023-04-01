@@ -2,17 +2,17 @@ import {
   defer,
   type LoaderArgs,
   type SerializeFrom,
-} from '@shopify/remix-oxygen';
-import {flattenConnection} from '@shopify/hydrogen';
-import {Await, Form, useLoaderData} from '@remix-run/react';
+} from '@shopify/remix-oxygen'
+import { flattenConnection } from '@shopify/hydrogen'
+import { Await, Form, useLoaderData } from '@remix-run/react'
 import type {
   Collection,
   CollectionConnection,
   Product,
   ProductConnection,
-} from '@shopify/hydrogen/storefront-api-types';
-import {Suspense} from 'react';
-import invariant from 'tiny-invariant';
+} from '@shopify/hydrogen/storefront-api-types'
+import { Suspense } from 'react'
+import invariant from 'tiny-invariant'
 import {
   Heading,
   Input,
@@ -22,18 +22,18 @@ import {
   FeaturedCollections,
   Section,
   Text,
-} from '~/components';
-import {PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
-import {PAGINATION_SIZE} from '~/lib/const';
-import {seoPayload} from '~/lib/seo.server';
+} from '~/components'
+import { PRODUCT_CARD_FRAGMENT } from '~/data/fragments'
+import { PAGINATION_SIZE } from '~/lib/const'
+import { seoPayload } from '~/lib/seo.server'
 
-export async function loader({request, context: {storefront}}: LoaderArgs) {
-  const searchParams = new URL(request.url).searchParams;
-  const cursor = searchParams.get('cursor')!;
-  const searchTerm = searchParams.get('q')!;
+export async function loader({ request, context: { storefront } }: LoaderArgs) {
+  const searchParams = new URL(request.url).searchParams
+  const cursor = searchParams.get('cursor')!
+  const searchTerm = searchParams.get('q')!
 
   const data = await storefront.query<{
-    products: ProductConnection;
+    products: ProductConnection
   }>(SEARCH_QUERY, {
     variables: {
       pageBy: PAGINATION_SIZE,
@@ -42,12 +42,12 @@ export async function loader({request, context: {storefront}}: LoaderArgs) {
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'No data returned from Shopify API');
-  const {products} = data;
+  invariant(data, 'No data returned from Shopify API')
+  const { products } = data
 
-  const getRecommendations = !searchTerm || products?.nodes?.length === 0;
+  const getRecommendations = !searchTerm || products?.nodes?.length === 0
   const seoCollection = {
     id: 'search',
     title: 'Search',
@@ -61,12 +61,12 @@ export async function loader({request, context: {storefront}}: LoaderArgs) {
     metafields: [],
     products,
     updatedAt: new Date().toISOString(),
-  } satisfies Collection;
+  } satisfies Collection
 
   const seo = seoPayload.collection({
     collection: seoCollection,
     url: request.url,
-  });
+  })
 
   return defer({
     seo,
@@ -75,13 +75,13 @@ export async function loader({request, context: {storefront}}: LoaderArgs) {
     noResultRecommendations: getRecommendations
       ? getNoResultRecommendations(storefront)
       : Promise.resolve(null),
-  });
+  })
 }
 
 export default function Search() {
-  const {searchTerm, products, noResultRecommendations} =
-    useLoaderData<typeof loader>();
-  const noResults = products?.nodes?.length === 0;
+  const { searchTerm, products, noResultRecommendations } =
+    useLoaderData<typeof loader>()
+  const noResults = products?.nodes?.length === 0
 
   return (
     <>
@@ -140,12 +140,12 @@ export default function Search() {
           <ProductGrid
             key="search"
             url={`/search?q=${searchTerm}`}
-            collection={{products} as Collection}
+            collection={{ products } as Collection}
           />
         </Section>
       )}
     </>
-  );
+  )
 }
 
 const SEARCH_QUERY = `#graphql
@@ -174,28 +174,28 @@ const SEARCH_QUERY = `#graphql
       }
     }
   }
-`;
+`
 
 export async function getNoResultRecommendations(
-  storefront: LoaderArgs['context']['storefront'],
+  storefront: LoaderArgs['context']['storefront']
 ) {
   const data = await storefront.query<{
-    featuredCollections: CollectionConnection;
-    featuredProducts: ProductConnection;
+    featuredCollections: CollectionConnection
+    featuredProducts: ProductConnection
   }>(SEARCH_NO_RESULTS_QUERY, {
     variables: {
       pageBy: PAGINATION_SIZE,
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'No data returned from Shopify API');
+  invariant(data, 'No data returned from Shopify API')
 
   return {
     featuredCollections: flattenConnection(data.featuredCollections),
     featuredProducts: flattenConnection(data.featuredProducts),
-  };
+  }
 }
 
 const SEARCH_NO_RESULTS_QUERY = `#graphql
@@ -224,4 +224,4 @@ const SEARCH_NO_RESULTS_QUERY = `#graphql
       }
     }
   }
-`;
+`

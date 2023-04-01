@@ -1,10 +1,10 @@
-import {json, type LoaderArgs} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
+import { json, type LoaderArgs } from '@shopify/remix-oxygen'
+import { useLoaderData } from '@remix-run/react'
 import type {
   ProductConnection,
   Collection,
-} from '@shopify/hydrogen/storefront-api-types';
-import invariant from 'tiny-invariant';
+} from '@shopify/hydrogen/storefront-api-types'
+import invariant from 'tiny-invariant'
 import {
   PageHeader,
   Section,
@@ -13,30 +13,30 @@ import {
   Pagination,
   getPaginationVariables,
   Button,
-} from '~/components';
-import {PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
-import {getImageLoadingPriority} from '~/lib/const';
-import {seoPayload} from '~/lib/seo.server';
-import {routeHeaders, CACHE_SHORT} from '~/data/cache';
+} from '~/components'
+import { PRODUCT_CARD_FRAGMENT } from '~/data/fragments'
+import { getImageLoadingPriority } from '~/lib/const'
+import { seoPayload } from '~/lib/seo.server'
+import { routeHeaders, CACHE_SHORT } from '~/data/cache'
 
-const PAGE_BY = 8;
+const PAGE_BY = 8
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-export async function loader({request, context: {storefront}}: LoaderArgs) {
-  const variables = getPaginationVariables(request, PAGE_BY);
+export async function loader({ request, context: { storefront } }: LoaderArgs) {
+  const variables = getPaginationVariables(request, PAGE_BY)
 
   const data = await storefront.query<{
-    products: ProductConnection;
+    products: ProductConnection
   }>(ALL_PRODUCTS_QUERY, {
     variables: {
       ...variables,
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'No data returned from Shopify API');
+  invariant(data, 'No data returned from Shopify API')
 
   const seoCollection = {
     id: 'all-products',
@@ -51,12 +51,12 @@ export async function loader({request, context: {storefront}}: LoaderArgs) {
     metafields: [],
     products: data.products,
     updatedAt: '',
-  } satisfies Collection;
+  } satisfies Collection
 
   const seo = seoPayload.collection({
     collection: seoCollection,
     url: request.url,
-  });
+  })
 
   return json(
     {
@@ -67,12 +67,12 @@ export async function loader({request, context: {storefront}}: LoaderArgs) {
       headers: {
         'Cache-Control': CACHE_SHORT,
       },
-    },
-  );
+    }
+  )
 }
 
 export default function AllProducts() {
-  const {products} = useLoaderData<typeof loader>();
+  const { products } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -96,7 +96,7 @@ export default function AllProducts() {
                 product={product}
                 loading={getImageLoadingPriority(i)}
               />
-            ));
+            ))
 
             return (
               <>
@@ -145,12 +145,12 @@ export default function AllProducts() {
                   </div>
                 )}
               </>
-            );
+            )
           }}
         </Pagination>
       </Section>
     </>
-  );
+  )
 }
 
 const ALL_PRODUCTS_QUERY = `#graphql
@@ -175,4 +175,4 @@ const ALL_PRODUCTS_QUERY = `#graphql
       }
     }
   }
-`;
+`

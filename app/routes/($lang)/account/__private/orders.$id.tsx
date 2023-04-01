@@ -1,82 +1,81 @@
-import invariant from 'tiny-invariant';
-import clsx from 'clsx';
+import invariant from 'tiny-invariant'
+import clsx from 'clsx'
 import {
   json,
   redirect,
   type MetaFunction,
   type LoaderArgs,
-} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
-import {Money, Image, flattenConnection} from '@shopify/hydrogen';
-import {statusMessage} from '~/lib/utils';
+} from '@shopify/remix-oxygen'
+import { useLoaderData } from '@remix-run/react'
+import { Money, Image, flattenConnection } from '@shopify/hydrogen'
+import { statusMessage } from '~/lib/utils'
 import type {
   Order,
   OrderLineItem,
   DiscountApplicationConnection,
-} from '@shopify/hydrogen/storefront-api-types';
-import {Link, Heading, PageHeader, Text} from '~/components';
+} from '@shopify/hydrogen/storefront-api-types'
+import { Link, Heading, PageHeader, Text } from '~/components'
 
-export const meta: MetaFunction = ({data}) => ({
+export const meta: MetaFunction = ({ data }) => ({
   title: `Order ${data?.order?.name}`,
-});
+})
 
-export async function loader({request, context, params}: LoaderArgs) {
+export async function loader({ request, context, params }: LoaderArgs) {
   if (!params.id) {
-    return redirect(params?.lang ? `${params.lang}/account` : '/account');
+    return redirect(params?.lang ? `${params.lang}/account` : '/account')
   }
 
-  const queryParams = new URL(request.url).searchParams;
-  const orderToken = queryParams.get('key');
+  const queryParams = new URL(request.url).searchParams
+  const orderToken = queryParams.get('key')
 
-  invariant(orderToken, 'Order token is required');
+  invariant(orderToken, 'Order token is required')
 
-  const customerAccessToken = await context.session.get('customerAccessToken');
+  const customerAccessToken = await context.session.get('customerAccessToken')
 
   if (!customerAccessToken) {
     return redirect(
-      params.lang ? `${params.lang}/account/login` : '/account/login',
-    );
+      params.lang ? `${params.lang}/account/login` : '/account/login'
+    )
   }
 
-  const orderId = `gid://shopify/Order/${params.id}?key=${orderToken}`;
+  const orderId = `gid://shopify/Order/${params.id}?key=${orderToken}`
 
-  const data = await context.storefront.query<{node: Order}>(
+  const data = await context.storefront.query<{ node: Order }>(
     CUSTOMER_ORDER_QUERY,
-    {variables: {orderId}},
-  );
+    { variables: { orderId } }
+  )
 
-  const order = data?.node;
+  const order = data?.node
 
   if (!order) {
-    throw new Response('Order not found', {status: 404});
+    throw new Response('Order not found', { status: 404 })
   }
 
-  const lineItems = flattenConnection(order.lineItems!) as Array<OrderLineItem>;
+  const lineItems = flattenConnection(order.lineItems!) as Array<OrderLineItem>
 
   const discountApplications = flattenConnection(
-    order.discountApplications as DiscountApplicationConnection,
-  );
+    order.discountApplications as DiscountApplicationConnection
+  )
 
-  const firstDiscount = discountApplications[0]?.value;
+  const firstDiscount = discountApplications[0]?.value
 
-  const discountValue =
-    firstDiscount?.__typename === 'MoneyV2' && firstDiscount;
+  const discountValue = firstDiscount?.__typename === 'MoneyV2' && firstDiscount
 
   const discountPercentage =
     firstDiscount?.__typename === 'PricingPercentageValue' &&
-    firstDiscount?.percentage;
+    firstDiscount?.percentage
 
   return json({
     order,
     lineItems,
     discountValue,
     discountPercentage,
-  });
+  })
 }
 
 export default function OrderRoute() {
-  const {order, lineItems, discountValue, discountPercentage} =
-    useLoaderData<typeof loader>();
+  const { order, lineItems, discountValue, discountPercentage } =
+    useLoaderData<typeof loader>()
   return (
     <div>
       <PageHeader heading="Order detail">
@@ -311,7 +310,7 @@ export default function OrderRoute() {
                   `mt-3 px-3 py-1 text-xs font-medium rounded-full inline-block w-auto`,
                   order.fulfillmentStatus === 'FULFILLED'
                     ? 'bg-green-100 text-green-800'
-                    : 'bg-primary/20 text-primary/50',
+                    : 'bg-primary/20 text-primary/50'
                 )}
               >
                 <Text size="fine">
@@ -323,7 +322,7 @@ export default function OrderRoute() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 const CUSTOMER_ORDER_QUERY = `#graphql
@@ -439,4 +438,4 @@ const CUSTOMER_ORDER_QUERY = `#graphql
       }
     }
   }
-`;
+`

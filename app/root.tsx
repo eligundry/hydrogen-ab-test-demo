@@ -4,7 +4,7 @@ import {
   type MetaFunction,
   type LoaderArgs,
   type AppLoadContext,
-} from '@shopify/remix-oxygen';
+} from '@shopify/remix-oxygen'
 import {
   Links,
   Meta,
@@ -14,22 +14,22 @@ import {
   useCatch,
   useLoaderData,
   useMatches,
-} from '@remix-run/react';
-import {ShopifySalesChannel, Seo} from '@shopify/hydrogen';
-import {Layout} from '~/components';
-import {GenericError} from './components/GenericError';
-import {NotFound} from './components/NotFound';
-import styles from './styles/app.css';
-import favicon from '../public/favicon.svg';
-import {seoPayload} from '~/lib/seo.server';
-import {DEFAULT_LOCALE, parseMenu, type EnhancedMenu} from './lib/utils';
-import invariant from 'tiny-invariant';
-import {Shop, Cart} from '@shopify/hydrogen/storefront-api-types';
-import {useAnalytics} from './hooks/useAnalytics';
+} from '@remix-run/react'
+import { ShopifySalesChannel, Seo } from '@shopify/hydrogen'
+import { Layout } from '~/components'
+import { GenericError } from './components/GenericError'
+import { NotFound } from './components/NotFound'
+import styles from './styles/app.css'
+import favicon from '../public/favicon.svg'
+import { seoPayload } from '~/lib/seo.server'
+import { DEFAULT_LOCALE, parseMenu, type EnhancedMenu } from './lib/utils'
+import invariant from 'tiny-invariant'
+import { Shop, Cart } from '@shopify/hydrogen/storefront-api-types'
+import { useAnalytics } from './hooks/useAnalytics'
 
 export const links: LinksFunction = () => {
   return [
-    {rel: 'stylesheet', href: styles},
+    { rel: 'stylesheet', href: styles },
     {
       rel: 'preconnect',
       href: 'https://cdn.shopify.com',
@@ -38,23 +38,23 @@ export const links: LinksFunction = () => {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
-  ];
-};
+    { rel: 'icon', type: 'image/svg+xml', href: favicon },
+  ]
+}
 
 export const meta: MetaFunction = () => ({
   charset: 'utf-8',
   viewport: 'width=device-width,initial-scale=1',
-});
+})
 
-export async function loader({request, context}: LoaderArgs) {
+export async function loader({ request, context }: LoaderArgs) {
   const [customerAccessToken, cartId, layout] = await Promise.all([
     context.session.get('customerAccessToken'),
     context.session.get('cartId'),
     getLayoutData(context),
-  ]);
+  ])
 
-  const seo = seoPayload.root({shop: layout.shop, url: request.url});
+  const seo = seoPayload.root({ shop: layout.shop, url: request.url })
 
   return defer({
     isLoggedIn: Boolean(customerAccessToken),
@@ -66,15 +66,15 @@ export async function loader({request, context}: LoaderArgs) {
       shopId: layout.shop.id,
     },
     seo,
-  });
+  })
 }
 
 export default function App() {
-  const data = useLoaderData<typeof loader>();
-  const locale = data.selectedLocale ?? DEFAULT_LOCALE;
-  const hasUserConsent = true;
+  const data = useLoaderData<typeof loader>()
+  const locale = data.selectedLocale ?? DEFAULT_LOCALE
+  const hasUserConsent = true
 
-  useAnalytics(hasUserConsent, locale);
+  useAnalytics(hasUserConsent, locale)
 
   return (
     <html lang={locale.language}>
@@ -94,14 +94,14 @@ export default function App() {
         <Scripts />
       </body>
     </html>
-  );
+  )
 }
 
 export function CatchBoundary() {
-  const [root] = useMatches();
-  const caught = useCatch();
-  const isNotFound = caught.status === 404;
-  const locale = root.data?.selectedLocale ?? DEFAULT_LOCALE;
+  const [root] = useMatches()
+  const caught = useCatch()
+  const isNotFound = caught.status === 404
+  const locale = root.data?.selectedLocale ?? DEFAULT_LOCALE
 
   return (
     <html lang={locale.language}>
@@ -119,19 +119,19 @@ export function CatchBoundary() {
             <NotFound type={caught.data?.pageType} />
           ) : (
             <GenericError
-              error={{message: `${caught.status} ${caught.data}`}}
+              error={{ message: `${caught.status} ${caught.data}` }}
             />
           )}
         </Layout>
         <Scripts />
       </body>
     </html>
-  );
+  )
 }
 
-export function ErrorBoundary({error}: {error: Error}) {
-  const [root] = useMatches();
-  const locale = root?.data?.selectedLocale ?? DEFAULT_LOCALE;
+export function ErrorBoundary({ error }: { error: Error }) {
+  const [root] = useMatches()
+  const locale = root?.data?.selectedLocale ?? DEFAULT_LOCALE
 
   return (
     <html lang={locale.language}>
@@ -147,7 +147,7 @@ export function ErrorBoundary({error}: {error: Error}) {
         <Scripts />
       </body>
     </html>
-  );
+  )
 }
 
 const LAYOUT_QUERY = `#graphql
@@ -198,18 +198,18 @@ const LAYOUT_QUERY = `#graphql
     type
     url
   }
-`;
+`
 
 export interface LayoutData {
-  headerMenu: EnhancedMenu;
-  footerMenu: EnhancedMenu;
-  shop: Shop;
-  cart?: Promise<Cart>;
+  headerMenu: EnhancedMenu
+  footerMenu: EnhancedMenu
+  shop: Shop
+  cart?: Promise<Cart>
 }
 
-async function getLayoutData({storefront}: AppLoadContext) {
-  const HEADER_MENU_HANDLE = 'main-menu';
-  const FOOTER_MENU_HANDLE = 'footer';
+async function getLayoutData({ storefront }: AppLoadContext) {
+  const HEADER_MENU_HANDLE = 'main-menu'
+  const FOOTER_MENU_HANDLE = 'footer'
 
   const data = await storefront.query<LayoutData>(LAYOUT_QUERY, {
     variables: {
@@ -217,9 +217,9 @@ async function getLayoutData({storefront}: AppLoadContext) {
       footerMenuHandle: FOOTER_MENU_HANDLE,
       language: storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'No data returned from Shopify API');
+  invariant(data, 'No data returned from Shopify API')
 
   /*
     Modify specific links/routes (optional)
@@ -229,17 +229,17 @@ async function getLayoutData({storefront}: AppLoadContext) {
       - /blog/news/blog-post -> /news/blog-post
       - /collections/all -> /products
   */
-  const customPrefixes = {BLOG: '', CATALOG: 'products'};
+  const customPrefixes = { BLOG: '', CATALOG: 'products' }
 
   const headerMenu = data?.headerMenu
     ? parseMenu(data.headerMenu, customPrefixes)
-    : undefined;
+    : undefined
 
   const footerMenu = data?.footerMenu
     ? parseMenu(data.footerMenu, customPrefixes)
-    : undefined;
+    : undefined
 
-  return {shop: data.shop, headerMenu, footerMenu};
+  return { shop: data.shop, headerMenu, footerMenu }
 }
 
 const CART_QUERY = `#graphql
@@ -354,19 +354,19 @@ const CART_QUERY = `#graphql
     width
     height
   }
-`;
+`
 
-export async function getCart({storefront}: AppLoadContext, cartId: string) {
-  invariant(storefront, 'missing storefront client in cart query');
+export async function getCart({ storefront }: AppLoadContext, cartId: string) {
+  invariant(storefront, 'missing storefront client in cart query')
 
-  const {cart} = await storefront.query<{cart?: Cart}>(CART_QUERY, {
+  const { cart } = await storefront.query<{ cart?: Cart }>(CART_QUERY, {
     variables: {
       cartId,
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
     cache: storefront.CacheNone(),
-  });
+  })
 
-  return cart;
+  return cart
 }

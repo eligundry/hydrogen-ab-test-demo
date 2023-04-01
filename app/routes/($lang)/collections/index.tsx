@@ -1,9 +1,9 @@
-import {json, type LoaderArgs} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
+import { json, type LoaderArgs } from '@shopify/remix-oxygen'
+import { useLoaderData } from '@remix-run/react'
 import type {
   Collection,
   CollectionConnection,
-} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/hydrogen/storefront-api-types'
 import {
   Grid,
   Heading,
@@ -13,44 +13,47 @@ import {
   Pagination,
   getPaginationVariables,
   Button,
-} from '~/components';
-import {getImageLoadingPriority} from '~/lib/const';
-import {seoPayload} from '~/lib/seo.server';
-import {CACHE_SHORT, routeHeaders} from '~/data/cache';
+} from '~/components'
+import { getImageLoadingPriority } from '~/lib/const'
+import { seoPayload } from '~/lib/seo.server'
+import { CACHE_SHORT, routeHeaders } from '~/data/cache'
 
-const PAGINATION_SIZE = 8;
+const PAGINATION_SIZE = 8
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-export const loader = async ({request, context: {storefront}}: LoaderArgs) => {
-  const variables = getPaginationVariables(request, PAGINATION_SIZE);
-  const {collections} = await storefront.query<{
-    collections: CollectionConnection;
+export const loader = async ({
+  request,
+  context: { storefront },
+}: LoaderArgs) => {
+  const variables = getPaginationVariables(request, PAGINATION_SIZE)
+  const { collections } = await storefront.query<{
+    collections: CollectionConnection
   }>(COLLECTIONS_QUERY, {
     variables: {
       ...variables,
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
-  });
+  })
 
   const seo = seoPayload.listCollections({
     collections,
     url: request.url,
-  });
+  })
 
   return json(
-    {collections, seo},
+    { collections, seo },
     {
       headers: {
         'Cache-Control': CACHE_SHORT,
       },
-    },
-  );
-};
+    }
+  )
+}
 
 export default function Collections() {
-  const {collections} = useLoaderData<typeof loader>();
+  const { collections } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -129,15 +132,15 @@ export default function Collections() {
         </Pagination>
       </Section>
     </>
-  );
+  )
 }
 
 function CollectionCard({
   collection,
   loading,
 }: {
-  collection: Collection;
-  loading?: HTMLImageElement['loading'];
+  collection: Collection
+  loading?: HTMLImageElement['loading']
 }) {
   return (
     <Link to={`/collections/${collection.handle}`} className="grid gap-4">
@@ -157,7 +160,7 @@ function CollectionCard({
         {collection.title}
       </Heading>
     </Link>
-  );
+  )
 }
 
 const COLLECTIONS_QUERY = `#graphql
@@ -195,4 +198,4 @@ const COLLECTIONS_QUERY = `#graphql
       }
     }
   }
-`;
+`

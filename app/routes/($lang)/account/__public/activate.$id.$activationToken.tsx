@@ -3,26 +3,26 @@ import {
   redirect,
   type MetaFunction,
   type ActionFunction,
-} from '@shopify/remix-oxygen';
-import {Form, useActionData} from '@remix-run/react';
-import {useRef, useState} from 'react';
-import {getInputStyleClasses} from '~/lib/utils';
-import type {CustomerActivatePayload} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/remix-oxygen'
+import { Form, useActionData } from '@remix-run/react'
+import { useRef, useState } from 'react'
+import { getInputStyleClasses } from '~/lib/utils'
+import type { CustomerActivatePayload } from '@shopify/hydrogen/storefront-api-types'
 
 type ActionData = {
-  formError?: string;
-};
+  formError?: string
+}
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 export const handle = {
   isPublic: true,
-};
+}
 
 export const action: ActionFunction = async ({
   request,
   context,
-  params: {lang, id, activationToken},
+  params: { lang, id, activationToken },
 }) => {
   if (
     !id ||
@@ -32,13 +32,13 @@ export const action: ActionFunction = async ({
   ) {
     return badRequest({
       formError: 'Wrong token. The link you followed might be wrong.',
-    });
+    })
   }
 
-  const formData = await request.formData();
+  const formData = await request.formData()
 
-  const password = formData.get('password');
-  const passwordConfirm = formData.get('passwordConfirm');
+  const password = formData.get('password')
+  const passwordConfirm = formData.get('passwordConfirm')
 
   if (
     !password ||
@@ -49,14 +49,14 @@ export const action: ActionFunction = async ({
   ) {
     return badRequest({
       formError: 'Please provide matching passwords',
-    });
+    })
   }
 
-  const {session, storefront} = context;
+  const { session, storefront } = context
 
   try {
     const data = await storefront.mutate<{
-      customerActivate: CustomerActivatePayload;
+      customerActivate: CustomerActivatePayload
     }>(CUSTOMER_ACTIVATE_MUTATION, {
       variables: {
         id: `gid://shopify/Customer/${id}`,
@@ -65,29 +65,29 @@ export const action: ActionFunction = async ({
           activationToken,
         },
       },
-    });
+    })
 
-    const {accessToken} = data?.customerActivate?.customerAccessToken ?? {};
+    const { accessToken } = data?.customerActivate?.customerAccessToken ?? {}
 
     if (!accessToken) {
       /**
        * Something is wrong with the user's input.
        */
-      throw new Error(data?.customerActivate?.customerUserErrors.join(', '));
+      throw new Error(data?.customerActivate?.customerUserErrors.join(', '))
     }
 
-    session.set('customerAccessToken', accessToken);
+    session.set('customerAccessToken', accessToken)
 
     return redirect(lang ? `${lang}/account` : '/account', {
       headers: {
         'Set-Cookie': await session.commit(),
       },
-    });
+    })
   } catch (error: any) {
     if (storefront.isApiError(error)) {
       return badRequest({
         formError: 'Something went wrong. Please try again later.',
-      });
+      })
     }
 
     /**
@@ -96,49 +96,49 @@ export const action: ActionFunction = async ({
      */
     return badRequest({
       formError: 'Sorry. We could not activate your account.',
-    });
+    })
   }
-};
+}
 
 export const meta: MetaFunction = () => {
   return {
     title: 'Activate Account',
-  };
-};
+  }
+}
 
 export default function Activate() {
-  const actionData = useActionData<ActionData>();
+  const actionData = useActionData<ActionData>()
   const [nativePasswordError, setNativePasswordError] = useState<null | string>(
-    null,
-  );
+    null
+  )
   const [nativePasswordConfirmError, setNativePasswordConfirmError] = useState<
     null | string
-  >(null);
+  >(null)
 
-  const passwordInput = useRef<HTMLInputElement>(null);
-  const passwordConfirmInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null)
+  const passwordConfirmInput = useRef<HTMLInputElement>(null)
 
   const validatePasswordConfirm = () => {
-    if (!passwordConfirmInput.current) return;
+    if (!passwordConfirmInput.current) return
 
     if (
       passwordConfirmInput.current.value.length &&
       passwordConfirmInput.current.value !== passwordInput.current?.value
     ) {
-      setNativePasswordConfirmError('The two passwords entered did not match.');
+      setNativePasswordConfirmError('The two passwords entered did not match.')
     } else if (
       passwordConfirmInput.current.validity.valid ||
       !passwordConfirmInput.current.value.length
     ) {
-      setNativePasswordConfirmError(null);
+      setNativePasswordConfirmError(null)
     } else {
       setNativePasswordConfirmError(
         passwordConfirmInput.current.validity.valueMissing
           ? 'Please re-enter the password'
-          : 'Passwords must be at least 8 characters',
-      );
+          : 'Passwords must be at least 8 characters'
+      )
     }
-  };
+  }
 
   return (
     <div className="flex justify-center my-24 px-4">
@@ -175,14 +175,14 @@ export default function Activate() {
                   event.currentTarget.validity.valid ||
                   !event.currentTarget.value.length
                 ) {
-                  setNativePasswordError(null);
-                  validatePasswordConfirm();
+                  setNativePasswordError(null)
+                  validatePasswordConfirm()
                 } else {
                   setNativePasswordError(
                     event.currentTarget.validity.valueMissing
                       ? 'Please enter a password'
-                      : 'Passwords must be at least 8 characters',
-                  );
+                      : 'Passwords must be at least 8 characters'
+                  )
                 }
               }}
             />
@@ -197,7 +197,7 @@ export default function Activate() {
             <input
               ref={passwordConfirmInput}
               className={`mb-1 ${getInputStyleClasses(
-                nativePasswordConfirmError,
+                nativePasswordConfirmError
               )}`}
               id="passwordConfirm"
               name="passwordConfirm"
@@ -229,7 +229,7 @@ export default function Activate() {
         </Form>
       </div>
     </div>
-  );
+  )
 }
 
 const CUSTOMER_ACTIVATE_MUTATION = `#graphql
@@ -246,4 +246,4 @@ const CUSTOMER_ACTIVATE_MUTATION = `#graphql
       }
     }
   }
-`;
+`

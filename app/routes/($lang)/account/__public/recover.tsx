@@ -4,65 +4,65 @@ import {
   type MetaFunction,
   type ActionFunction,
   type LoaderArgs,
-} from '@shopify/remix-oxygen';
-import {Form, useActionData} from '@remix-run/react';
-import {useState} from 'react';
-import {Link} from '~/components';
-import {getInputStyleClasses} from '~/lib/utils';
-import type {CustomerRecoverPayload} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/remix-oxygen'
+import { Form, useActionData } from '@remix-run/react'
+import { useState } from 'react'
+import { Link } from '~/components'
+import { getInputStyleClasses } from '~/lib/utils'
+import type { CustomerRecoverPayload } from '@shopify/hydrogen/storefront-api-types'
 
-export async function loader({context, params}: LoaderArgs) {
-  const customerAccessToken = await context.session.get('customerAccessToken');
+export async function loader({ context, params }: LoaderArgs) {
+  const customerAccessToken = await context.session.get('customerAccessToken')
 
   if (customerAccessToken) {
-    return redirect(params.lang ? `${params.lang}/account` : '/account');
+    return redirect(params.lang ? `${params.lang}/account` : '/account')
   }
 
-  return new Response(null);
+  return new Response(null)
 }
 
 type ActionData = {
-  formError?: string;
-  resetRequested?: boolean;
-};
+  formError?: string
+  resetRequested?: boolean
+}
 
-const badRequest = (data: ActionData) => json(data, {status: 400});
+const badRequest = (data: ActionData) => json(data, { status: 400 })
 
-export const action: ActionFunction = async ({request, context}) => {
-  const formData = await request.formData();
-  const email = formData.get('email');
+export const action: ActionFunction = async ({ request, context }) => {
+  const formData = await request.formData()
+  const email = formData.get('email')
 
   if (!email || typeof email !== 'string') {
     return badRequest({
       formError: 'Please provide an email.',
-    });
+    })
   }
 
   try {
     await context.storefront.mutate<{
-      customerRecover: CustomerRecoverPayload;
+      customerRecover: CustomerRecoverPayload
     }>(CUSTOMER_RECOVER_MUTATION, {
-      variables: {email},
-    });
+      variables: { email },
+    })
 
-    return json({resetRequested: true});
+    return json({ resetRequested: true })
   } catch (error: any) {
     return badRequest({
       formError: 'Something went wrong. Please try again later.',
-    });
+    })
   }
-};
+}
 
 export const meta: MetaFunction = () => {
   return {
     title: 'Recover Password',
-  };
-};
+  }
+}
 
 export default function Recover() {
-  const actionData = useActionData<ActionData>();
-  const [nativeEmailError, setNativeEmailError] = useState<null | string>(null);
-  const isSubmitted = actionData?.resetRequested;
+  const actionData = useActionData<ActionData>()
+  const [nativeEmailError, setNativeEmailError] = useState<null | string>(null)
+  const isSubmitted = actionData?.resetRequested
 
   return (
     <div className="flex justify-center my-24 px-4">
@@ -113,8 +113,8 @@ export default function Recover() {
                       event.currentTarget.value.length &&
                         !event.currentTarget.validity.valid
                         ? 'Invalid email address'
-                        : null,
-                    );
+                        : null
+                    )
                   }}
                 />
                 {nativeEmailError && (
@@ -144,7 +144,7 @@ export default function Recover() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 const CUSTOMER_RECOVER_MUTATION = `#graphql
@@ -157,4 +157,4 @@ const CUSTOMER_RECOVER_MUTATION = `#graphql
       }
     }
   }
-`;
+`

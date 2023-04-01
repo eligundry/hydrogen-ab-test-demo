@@ -1,53 +1,56 @@
-import {Button, Grid, ProductCard, Link} from '~/components';
-import {getImageLoadingPriority} from '~/lib/const';
-import type {Collection, Product} from '@shopify/hydrogen/storefront-api-types';
-import {useFetcher} from '@remix-run/react';
-import {useEffect, useState} from 'react';
+import { Button, Grid, ProductCard, Link } from '~/components'
+import { getImageLoadingPriority } from '~/lib/const'
+import type {
+  Collection,
+  Product,
+} from '@shopify/hydrogen/storefront-api-types'
+import { useFetcher } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 
 export function ProductGrid({
   url,
   collection,
   ...props
 }: {
-  url: string;
-  collection: Collection;
+  url: string
+  collection: Collection
 }) {
   const [initialProducts, setInitialProducts] = useState(
-    collection?.products?.nodes || [],
-  );
+    collection?.products?.nodes || []
+  )
 
   const [nextPage, setNextPage] = useState(
-    collection?.products?.pageInfo?.hasNextPage,
-  );
+    collection?.products?.pageInfo?.hasNextPage
+  )
   const [endCursor, setEndCursor] = useState(
-    collection?.products?.pageInfo?.endCursor,
-  );
-  const [products, setProducts] = useState(initialProducts);
+    collection?.products?.pageInfo?.endCursor
+  )
+  const [products, setProducts] = useState(initialProducts)
 
   // props have changes, reset component state
-  const productProps = collection?.products?.nodes || [];
+  const productProps = collection?.products?.nodes || []
   if (initialProducts !== productProps) {
-    setInitialProducts(productProps);
-    setProducts(productProps);
+    setInitialProducts(productProps)
+    setProducts(productProps)
   }
 
-  const fetcher = useFetcher();
+  const fetcher = useFetcher()
 
   function fetchMoreProducts() {
-    fetcher.load(`${url}?index&cursor=${endCursor}`);
+    fetcher.load(`${url}?index&cursor=${endCursor}`)
   }
 
   useEffect(() => {
-    if (!fetcher.data) return;
+    if (!fetcher.data) return
 
-    const {collection} = fetcher.data;
+    const { collection } = fetcher.data
 
-    setProducts((prev: Product[]) => [...prev, ...collection.products.nodes]);
-    setNextPage(collection.products.pageInfo.hasNextPage);
-    setEndCursor(collection.products.pageInfo.endCursor);
-  }, [fetcher.data]);
+    setProducts((prev: Product[]) => [...prev, ...collection.products.nodes])
+    setNextPage(collection.products.pageInfo.hasNextPage)
+    setEndCursor(collection.products.pageInfo.endCursor)
+  }, [fetcher.data])
 
-  const haveProducts = initialProducts.length > 0;
+  const haveProducts = initialProducts.length > 0
 
   if (!haveProducts) {
     return (
@@ -57,7 +60,7 @@ export function ProductGrid({
           <p className="underline">Browse catalog</p>
         </Link>
       </>
-    );
+    )
   }
 
   return (
@@ -86,5 +89,5 @@ export function ProductGrid({
         </div>
       )}
     </>
-  );
+  )
 }

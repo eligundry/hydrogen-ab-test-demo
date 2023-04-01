@@ -1,41 +1,41 @@
-import {defer, type LoaderArgs} from '@shopify/remix-oxygen';
-import {Suspense} from 'react';
-import {Await, useLoaderData} from '@remix-run/react';
-import {ProductSwimlane, FeaturedCollections, Hero} from '~/components';
-import {MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
-import {getHeroPlaceholder} from '~/lib/placeholders';
-import {seoPayload} from '~/lib/seo.server';
+import { defer, type LoaderArgs } from '@shopify/remix-oxygen'
+import { Suspense } from 'react'
+import { Await, useLoaderData } from '@remix-run/react'
+import { ProductSwimlane, FeaturedCollections, Hero } from '~/components'
+import { MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT } from '~/data/fragments'
+import { getHeroPlaceholder } from '~/lib/placeholders'
+import { seoPayload } from '~/lib/seo.server'
 import type {
   CollectionConnection,
   Metafield,
   ProductConnection,
-} from '@shopify/hydrogen/storefront-api-types';
-import {AnalyticsPageType} from '@shopify/hydrogen';
-import {routeHeaders, CACHE_SHORT} from '~/data/cache';
+} from '@shopify/hydrogen/storefront-api-types'
+import { AnalyticsPageType } from '@shopify/hydrogen'
+import { routeHeaders, CACHE_SHORT } from '~/data/cache'
 
 interface HomeSeoData {
   shop: {
-    name: string;
-    description: string;
-  };
+    name: string
+    description: string
+  }
 }
 
 export interface CollectionHero {
-  byline: Metafield;
-  cta: Metafield;
-  handle: string;
-  heading: Metafield;
-  height?: 'full';
-  loading?: 'eager' | 'lazy';
-  spread: Metafield;
-  spreadSecondary: Metafield;
-  top?: boolean;
+  byline: Metafield
+  cta: Metafield
+  handle: string
+  heading: Metafield
+  height?: 'full'
+  loading?: 'eager' | 'lazy'
+  spread: Metafield
+  spreadSecondary: Metafield
+  top?: boolean
 }
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-export async function loader({params, context}: LoaderArgs) {
-  const {language, country} = context.storefront.i18n;
+export async function loader({ params, context }: LoaderArgs) {
+  const { language, country } = context.storefront.i18n
 
   if (
     params.lang &&
@@ -43,17 +43,17 @@ export async function loader({params, context}: LoaderArgs) {
   ) {
     // If the lang URL param is defined, yet we still are on `EN-US`
     // the the lang param must be invalid, send to the 404 page
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 })
   }
 
-  const {shop, hero} = await context.storefront.query<{
-    hero: CollectionHero;
-    shop: HomeSeoData;
+  const { shop, hero } = await context.storefront.query<{
+    hero: CollectionHero
+    shop: HomeSeoData
   }>(HOMEPAGE_SEO_QUERY, {
-    variables: {handle: 'freestyle'},
-  });
+    variables: { handle: 'freestyle' },
+  })
 
-  const seo = seoPayload.home();
+  const seo = seoPayload.home()
 
   return defer(
     {
@@ -62,7 +62,7 @@ export async function loader({params, context}: LoaderArgs) {
       // These different queries are separated to illustrate how 3rd party content
       // fetching can be optimized for both above and below the fold.
       featuredProducts: context.storefront.query<{
-        products: ProductConnection;
+        products: ProductConnection
       }>(HOMEPAGE_FEATURED_PRODUCTS_QUERY, {
         variables: {
           /**
@@ -74,7 +74,7 @@ export async function loader({params, context}: LoaderArgs) {
           language,
         },
       }),
-      secondaryHero: context.storefront.query<{hero: CollectionHero}>(
+      secondaryHero: context.storefront.query<{ hero: CollectionHero }>(
         COLLECTION_HERO_QUERY,
         {
           variables: {
@@ -82,17 +82,17 @@ export async function loader({params, context}: LoaderArgs) {
             country,
             language,
           },
-        },
+        }
       ),
       featuredCollections: context.storefront.query<{
-        collections: CollectionConnection;
+        collections: CollectionConnection
       }>(FEATURED_COLLECTIONS_QUERY, {
         variables: {
           country,
           language,
         },
       }),
-      tertiaryHero: context.storefront.query<{hero: CollectionHero}>(
+      tertiaryHero: context.storefront.query<{ hero: CollectionHero }>(
         COLLECTION_HERO_QUERY,
         {
           variables: {
@@ -100,7 +100,7 @@ export async function loader({params, context}: LoaderArgs) {
             country,
             language,
           },
-        },
+        }
       ),
       analytics: {
         pageType: AnalyticsPageType.home,
@@ -111,8 +111,8 @@ export async function loader({params, context}: LoaderArgs) {
       headers: {
         'Cache-Control': CACHE_SHORT,
       },
-    },
-  );
+    }
+  )
 }
 
 export default function Homepage() {
@@ -122,10 +122,10 @@ export default function Homepage() {
     tertiaryHero,
     featuredCollections,
     featuredProducts,
-  } = useLoaderData<typeof loader>();
+  } = useLoaderData<typeof loader>()
 
   // TODO: skeletons vs placeholders
-  const skeletons = getHeroPlaceholder([{}, {}, {}]);
+  const skeletons = getHeroPlaceholder([{}, {}, {}])
 
   return (
     <>
@@ -136,15 +136,15 @@ export default function Homepage() {
       {featuredProducts && (
         <Suspense>
           <Await resolve={featuredProducts}>
-            {({products}) => {
-              if (!products?.nodes) return <></>;
+            {({ products }) => {
+              if (!products?.nodes) return <></>
               return (
                 <ProductSwimlane
                   products={products.nodes}
                   title="Featured Products"
                   count={4}
                 />
-              );
+              )
             }}
           </Await>
         </Suspense>
@@ -153,9 +153,9 @@ export default function Homepage() {
       {secondaryHero && (
         <Suspense fallback={<Hero {...skeletons[1]} />}>
           <Await resolve={secondaryHero}>
-            {({hero}) => {
-              if (!hero) return <></>;
-              return <Hero {...hero} />;
+            {({ hero }) => {
+              if (!hero) return <></>
+              return <Hero {...hero} />
             }}
           </Await>
         </Suspense>
@@ -164,14 +164,14 @@ export default function Homepage() {
       {featuredCollections && (
         <Suspense>
           <Await resolve={featuredCollections}>
-            {({collections}) => {
-              if (!collections?.nodes) return <></>;
+            {({ collections }) => {
+              if (!collections?.nodes) return <></>
               return (
                 <FeaturedCollections
                   collections={collections.nodes}
                   title="Collections"
                 />
-              );
+              )
             }}
           </Await>
         </Suspense>
@@ -180,15 +180,15 @@ export default function Homepage() {
       {tertiaryHero && (
         <Suspense fallback={<Hero {...skeletons[2]} />}>
           <Await resolve={tertiaryHero}>
-            {({hero}) => {
-              if (!hero) return <></>;
-              return <Hero {...hero} />;
+            {({ hero }) => {
+              if (!hero) return <></>
+              return <Hero {...hero} />
             }}
           </Await>
         </Suspense>
       )}
     </>
-  );
+  )
 }
 
 const COLLECTION_CONTENT_FRAGMENT = `#graphql
@@ -218,7 +218,7 @@ const COLLECTION_CONTENT_FRAGMENT = `#graphql
       }
     }
   }
-`;
+`
 
 const HOMEPAGE_SEO_QUERY = `#graphql
   ${COLLECTION_CONTENT_FRAGMENT}
@@ -232,7 +232,7 @@ const HOMEPAGE_SEO_QUERY = `#graphql
       description
     }
   }
-`;
+`
 
 const COLLECTION_HERO_QUERY = `#graphql
   ${COLLECTION_CONTENT_FRAGMENT}
@@ -242,7 +242,7 @@ const COLLECTION_HERO_QUERY = `#graphql
       ...CollectionContent
     }
   }
-`;
+`
 
 // @see: https://shopify.dev/api/storefront/latest/queries/products
 export const HOMEPAGE_FEATURED_PRODUCTS_QUERY = `#graphql
@@ -255,7 +255,7 @@ export const HOMEPAGE_FEATURED_PRODUCTS_QUERY = `#graphql
       }
     }
   }
-`;
+`
 
 // @see: https://shopify.dev/api/storefront/latest/queries/collections
 export const FEATURED_COLLECTIONS_QUERY = `#graphql
@@ -278,4 +278,4 @@ export const FEATURED_COLLECTIONS_QUERY = `#graphql
       }
     }
   }
-`;
+`

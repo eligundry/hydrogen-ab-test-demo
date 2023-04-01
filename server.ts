@@ -1,12 +1,12 @@
 // Virtual entry point for the app
-import * as remixBuild from '@remix-run/dev/server-build';
+import * as remixBuild from '@remix-run/dev/server-build'
 import {
   createRequestHandler,
   getStorefrontHeaders,
-} from '@shopify/remix-oxygen';
-import {createStorefrontClient, storefrontRedirect} from '@shopify/hydrogen';
-import {HydrogenSession} from '~/lib/session.server';
-import {getLocaleFromRequest} from '~/lib/utils';
+} from '@shopify/remix-oxygen'
+import { createStorefrontClient, storefrontRedirect } from '@shopify/hydrogen'
+import { HydrogenSession } from '~/lib/session.server'
+import { getLocaleFromRequest } from '~/lib/utils'
 
 /**
  * Export a fetch handler in module format.
@@ -15,26 +15,26 @@ export default {
   async fetch(
     request: Request,
     env: Env,
-    executionContext: ExecutionContext,
+    executionContext: ExecutionContext
   ): Promise<Response> {
     try {
       /**
        * Open a cache instance in the worker and a custom session instance.
        */
       if (!env?.SESSION_SECRET) {
-        throw new Error('SESSION_SECRET environment variable is not set');
+        throw new Error('SESSION_SECRET environment variable is not set')
       }
 
-      const waitUntil = (p: Promise<any>) => executionContext.waitUntil(p);
+      const waitUntil = (p: Promise<any>) => executionContext.waitUntil(p)
       const [cache, session] = await Promise.all([
         caches.open('hydrogen'),
         HydrogenSession.init(request, [env.SESSION_SECRET]),
-      ]);
+      ])
 
       /**
        * Create Hydrogen's Storefront client.
        */
-      const {storefront} = createStorefrontClient({
+      const { storefront } = createStorefrontClient({
         cache,
         waitUntil,
         i18n: getLocaleFromRequest(request),
@@ -44,7 +44,7 @@ export default {
         storefrontApiVersion: env.PUBLIC_STOREFRONT_API_VERSION || '2023-01',
         storefrontId: env.PUBLIC_STOREFRONT_ID,
         storefrontHeaders: getStorefrontHeaders(request),
-      });
+      })
 
       /**
        * Create a Remix request handler and pass
@@ -53,10 +53,10 @@ export default {
       const handleRequest = createRequestHandler({
         build: remixBuild,
         mode: process.env.NODE_ENV,
-        getLoadContext: () => ({cache, session, waitUntil, storefront, env}),
-      });
+        getLoadContext: () => ({ cache, session, waitUntil, storefront, env }),
+      })
 
-      const response = await handleRequest(request);
+      const response = await handleRequest(request)
 
       if (response.status === 404) {
         /**
@@ -64,14 +64,14 @@ export default {
          * If the redirect doesn't exist, then `storefrontRedirect`
          * will pass through the 404 response.
          */
-        return storefrontRedirect({request, response, storefront});
+        return storefrontRedirect({ request, response, storefront })
       }
 
-      return response;
+      return response
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(error);
-      return new Response('An unexpected error occurred', {status: 500});
+      console.error(error)
+      return new Response('An unexpected error occurred', { status: 500 })
     }
   },
-};
+}

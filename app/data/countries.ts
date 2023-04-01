@@ -1,4 +1,4 @@
-import {Localizations} from '~/lib/type';
+import { Localizations } from '~/lib/type'
 
 export const countries: Localizations = {
   default: {
@@ -229,4 +229,4 @@ export const countries: Localizations = {
     country: 'XK',
     currency: 'EUR',
   },
-};
+}

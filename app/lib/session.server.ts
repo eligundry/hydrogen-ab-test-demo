@@ -2,7 +2,7 @@ import {
   createCookieSessionStorage,
   type SessionStorage,
   type Session,
-} from '@shopify/remix-oxygen';
+} from '@shopify/remix-oxygen'
 
 /**
  * This is a custom session implementation for your Hydrogen shop.
@@ -12,7 +12,7 @@ import {
 export class HydrogenSession {
   constructor(
     private sessionStorage: SessionStorage,
-    private session: Session,
+    private session: Session
   ) {}
 
   static async init(request: Request, secrets: string[]) {
@@ -24,34 +24,34 @@ export class HydrogenSession {
         sameSite: 'lax',
         secrets,
       },
-    });
+    })
 
-    const session = await storage.getSession(request.headers.get('Cookie'));
+    const session = await storage.getSession(request.headers.get('Cookie'))
 
-    return new this(storage, session);
+    return new this(storage, session)
   }
 
   get(key: string) {
-    return this.session.get(key);
+    return this.session.get(key)
   }
 
   destroy() {
-    return this.sessionStorage.destroySession(this.session);
+    return this.sessionStorage.destroySession(this.session)
   }
 
   flash(key: string, value: any) {
-    this.session.flash(key, value);
+    this.session.flash(key, value)
   }
 
   unset(key: string) {
-    this.session.unset(key);
+    this.session.unset(key)
   }
 
   set(key: string, value: any) {
-    this.session.set(key, value);
+    this.session.set(key, value)
   }
 
   commit() {
-    return this.sessionStorage.commitSession(this.session);
+    return this.sessionStorage.commitSession(this.session)
   }
 }

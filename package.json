@@ -13,7 +13,13 @@
     "format:check": "prettier --check --ignore-unknown .",
     "typecheck": "tsc --noEmit"
   },
-  "prettier": "@shopify/prettier-config",
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true,
+    "bracketSpacing": true
+  },
   "dependencies": {
     "@headlessui/react": "^1.7.2",
     "@remix-run/react": "1.14.0",

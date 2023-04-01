@@ -1,4 +1,4 @@
-import {type SeoConfig} from '@shopify/hydrogen';
+import { type SeoConfig } from '@shopify/hydrogen'
 import type {
   Article,
   Blog,
@@ -9,7 +9,7 @@ import type {
   ProductVariant,
   ShopPolicy,
   Shop,
-} from '@shopify/hydrogen-react/storefront-api-types';
+} from '@shopify/hydrogen-react/storefront-api-types'
 import type {
   Article as SeoArticle,
   BreadcrumbList,
@@ -19,14 +19,14 @@ import type {
   Organization,
   Product as SeoProduct,
   WebPage,
-} from 'schema-dts';
+} from 'schema-dts'
 
 function root({
   shop,
   url,
 }: {
-  shop: Shop;
-  url: Request['url'];
+  shop: Shop
+  url: Request['url']
 }): SeoConfig<Organization> {
   return {
     title: shop?.name,
@@ -57,7 +57,7 @@ function root({
         query: "required name='search_term'",
       },
     },
-  };
+  }
 }
 
 function home(): SeoConfig<WebPage> {
@@ -74,7 +74,7 @@ function home(): SeoConfig<WebPage> {
       '@type': 'WebPage',
       name: 'Home page',
     },
-  };
+  }
 }
 
 function productJsonLd({
@@ -82,23 +82,23 @@ function productJsonLd({
   selectedVariant,
   url,
 }: {
-  product: Product;
-  selectedVariant: ProductVariant;
-  url: Request['url'];
+  product: Product
+  selectedVariant: ProductVariant
+  url: Request['url']
 }): SeoConfig<SeoProduct | BreadcrumbList>['jsonLd'][] {
-  const origin = new URL(url).origin;
-  const variants = product.variants.nodes;
+  const origin = new URL(url).origin
+  const variants = product.variants.nodes
   const description = truncate(
-    product?.seo?.description ?? product?.description,
-  );
+    product?.seo?.description ?? product?.description
+  )
   const offers: Offer[] = (variants || []).map((variant) => {
-    const variantUrl = new URL(url);
+    const variantUrl = new URL(url)
     for (const option of variant.selectedOptions) {
-      variantUrl.searchParams.set(option.name, option.value);
+      variantUrl.searchParams.set(option.name, option.value)
     }
     const availability = variant.availableForSale
       ? 'https://schema.org/InStock'
-      : 'https://schema.org/OutOfStock';
+      : 'https://schema.org/OutOfStock'
 
     return {
       '@type': 'Offer',
@@ -107,8 +107,8 @@ function productJsonLd({
       priceCurrency: variant.price.currencyCode,
       sku: variant?.sku ?? '',
       url: variantUrl.toString(),
-    };
-  });
+    }
+  })
   return [
     {
       '@context': 'https://schema.org',
@@ -141,7 +141,7 @@ function productJsonLd({
       sku: selectedVariant?.sku ?? '',
       url,
     },
-  ];
+  ]
 }
 
 function product({
@@ -149,37 +149,37 @@ function product({
   url,
   selectedVariant,
 }: {
-  product: Product;
-  selectedVariant: ProductVariant;
-  url: Request['url'];
+  product: Product
+  selectedVariant: ProductVariant
+  url: Request['url']
 }) {
   const description = truncate(
-    product?.seo?.description ?? product?.description ?? '',
-  );
+    product?.seo?.description ?? product?.description ?? ''
+  )
   return {
     title: product?.seo?.title ?? product?.title,
     description,
     media: selectedVariant?.image,
-    jsonLd: productJsonLd({product, selectedVariant, url}),
-  };
+    jsonLd: productJsonLd({ product, selectedVariant, url }),
+  }
 }
 
 function collectionJsonLd({
   url,
   collection,
 }: {
-  url: Request['url'];
-  collection: Collection;
+  url: Request['url']
+  collection: Collection
 }): SeoConfig<CollectionPage | BreadcrumbList>['jsonLd'][] {
-  const siteUrl = new URL(url);
+  const siteUrl = new URL(url)
   const itemListElement: CollectionPage['mainEntity'] =
     collection.products.nodes.map((product, index) => {
       return {
         '@type': 'ListItem',
         position: index + 1,
         url: `/products/${product.handle}`,
-      };
-    });
+      }
+    })
 
   return [
     {
@@ -204,7 +204,7 @@ function collectionJsonLd({
       '@type': 'CollectionPage',
       name: collection?.seo?.title ?? collection?.title ?? '',
       description: truncate(
-        collection?.seo?.description ?? collection?.description ?? '',
+        collection?.seo?.description ?? collection?.description ?? ''
       ),
       image: collection?.image?.url,
       url: `/collections/${collection.handle}`,
@@ -213,20 +213,20 @@ function collectionJsonLd({
         itemListElement,
       },
     },
-  ];
+  ]
 }
 
 function collection({
   collection,
   url,
 }: {
-  collection: Collection;
-  url: Request['url'];
+  collection: Collection
+  url: Request['url']
 }) {
   return {
     title: collection?.seo?.title,
     description: truncate(
-      collection?.seo?.description ?? collection?.description ?? '',
+      collection?.seo?.description ?? collection?.description ?? ''
     ),
     titleTemplate: '%s | Collection',
     media: {
@@ -236,16 +236,16 @@ function collection({
       width: collection?.image?.width,
       altText: collection?.image?.altText,
     },
-    jsonLd: collectionJsonLd({collection, url}),
-  };
+    jsonLd: collectionJsonLd({ collection, url }),
+  }
 }
 
 function collectionsJsonLd({
   url,
   collections,
 }: {
-  url: Request['url'];
-  collections: CollectionConnection;
+  url: Request['url']
+  collections: CollectionConnection
 }): SeoConfig<CollectionPage>['jsonLd'] {
   const itemListElement: CollectionPage['mainEntity'] = collections.nodes.map(
     (collection, index) => {
@@ -253,9 +253,9 @@ function collectionsJsonLd({
         '@type': 'ListItem',
         position: index + 1,
         url: `/collections/${collection.handle}`,
-      };
-    },
-  );
+      }
+    }
+  )
 
   return {
     '@context': 'https://schema.org',
@@ -267,31 +267,31 @@ function collectionsJsonLd({
       '@type': 'ItemList',
       itemListElement,
     },
-  };
+  }
 }
 
 function listCollections({
   collections,
   url,
 }: {
-  collections: CollectionConnection;
-  url: Request['url'];
+  collections: CollectionConnection
+  url: Request['url']
 }): SeoConfig<CollectionPage> {
   return {
     title: 'Collections',
     titleTemplate: '%s | Collections',
     description: 'All hydrogen collections',
     url,
-    jsonLd: collectionsJsonLd({collections, url}),
-  };
+    jsonLd: collectionsJsonLd({ collections, url }),
+  }
 }
 
 function article({
   article,
   url,
 }: {
-  article: Article;
-  url: Request['url'];
+  article: Article
+  url: Request['url']
 }): SeoConfig<SeoArticle> {
   return {
     title: article?.seo?.title ?? article?.title,
@@ -312,21 +312,21 @@ function article({
       articleBody: article.contentHtml,
       datePublished: article?.publishedAt,
       description: truncate(
-        article?.seo?.description || article?.excerpt || '',
+        article?.seo?.description || article?.excerpt || ''
       ),
       headline: article?.seo?.title || '',
       image: article?.image?.url,
       url,
     },
-  };
+  }
 }
 
 function blog({
   blog,
   url,
 }: {
-  blog: Blog;
-  url: Request['url'];
+  blog: Blog
+  url: Request['url']
 }): SeoConfig<SeoBlog> {
   return {
     title: blog?.seo?.title,
@@ -340,15 +340,15 @@ function blog({
       description: blog?.seo?.description || '',
       url,
     },
-  };
+  }
 }
 
 function page({
   page,
   url,
 }: {
-  page: Page;
-  url: Request['url'];
+  page: Page
+  url: Request['url']
 }): SeoConfig<WebPage> {
   return {
     description: truncate(page?.seo?.description || ''),
@@ -360,32 +360,32 @@ function page({
       '@type': 'WebPage',
       name: page.title,
     },
-  };
+  }
 }
 
 function policy({
   policy,
   url,
 }: {
-  policy: ShopPolicy;
-  url: Request['url'];
+  policy: ShopPolicy
+  url: Request['url']
 }): SeoConfig<WebPage> {
   return {
     description: truncate(policy?.body ?? ''),
     title: policy?.title,
     titleTemplate: '%s | Policy',
     url,
-  };
+  }
 }
 
 function policies({
   policies,
   url,
 }: {
-  policies: ShopPolicy[];
-  url: Request['url'];
+  policies: ShopPolicy[]
+  url: Request['url']
 }): SeoConfig<WebPage | BreadcrumbList> {
-  const origin = new URL(url).origin;
+  const origin = new URL(url).origin
   const itemListElement: BreadcrumbList['itemListElement'] = policies
     .filter(Boolean)
     .map((policy, index) => {
@@ -394,8 +394,8 @@ function policies({
         position: index + 1,
         name: policy.title,
         item: `${origin}/policies/${policy.handle}`,
-      };
-    });
+      }
+    })
   return {
     title: 'Policies',
     titleTemplate: '%s | Policies',
@@ -414,7 +414,7 @@ function policies({
         url,
       },
     ],
-  };
+  }
 }
 
 export const seoPayload = {
@@ -428,7 +428,7 @@ export const seoPayload = {
   policy,
   product,
   root,
-};
+}
 
 /**
  * Truncate a string to a given length, adding an ellipsis if it was truncated
@@ -441,9 +441,9 @@ export const seoPayload = {
  * ```
  */
 function truncate(str: string, num = 155): string {
-  if (typeof str !== 'string') return '';
+  if (typeof str !== 'string') return ''
   if (str.length <= num) {
-    return str;
+    return str
   }
-  return str.slice(0, num - 3) + '...';
+  return str.slice(0, num - 3) + '...'
 }

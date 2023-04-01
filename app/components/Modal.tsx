@@ -1,11 +1,11 @@
-import {IconClose, Link} from '~/components';
+import { IconClose, Link } from '~/components'
 
 export function Modal({
   children,
   cancelLink,
 }: {
-  children: React.ReactNode;
-  cancelLink: string;
+  children: React.ReactNode
+  cancelLink: string
 }) {
   return (
     <div
@@ -22,10 +22,10 @@ export function Modal({
             className="relative flex-1 px-4 pt-5 pb-4 overflow-hidden text-left transition-all transform rounded shadow-xl bg-contrast sm:my-12 sm:flex-none sm:w-full sm:max-w-sm sm:p-6"
             role="button"
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation()
             }}
             onKeyPress={(e) => {
-              e.stopPropagation();
+              e.stopPropagation()
             }}
             tabIndex={0}
           >
@@ -42,5 +42,5 @@ export function Modal({
         </div>
       </div>
     </div>
-  );
+  )
 }

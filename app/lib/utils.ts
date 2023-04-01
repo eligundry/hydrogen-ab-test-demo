@@ -1,68 +1,68 @@
-import {useLocation, useMatches} from '@remix-run/react';
+import { useLocation, useMatches } from '@remix-run/react'
 import type {
   MenuItem,
   Menu,
   MoneyV2,
-} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/hydrogen/storefront-api-types'
 
 // @ts-expect-error types not available
-import typographicBase from 'typographic-base';
-import {countries} from '~/data/countries';
-import {I18nLocale, Locale} from './type';
+import typographicBase from 'typographic-base'
+import { countries } from '~/data/countries'
+import { I18nLocale, Locale } from './type'
 
 export interface EnhancedMenuItem extends MenuItem {
-  to: string;
-  target: string;
-  isExternal?: boolean;
-  items: EnhancedMenuItem[];
+  to: string
+  target: string
+  isExternal?: boolean
+  items: EnhancedMenuItem[]
 }
 
 export interface EnhancedMenu extends Menu {
-  items: EnhancedMenuItem[];
+  items: EnhancedMenuItem[]
 }
 
 export function missingClass(string?: string, prefix?: string) {
   if (!string) {
-    return true;
+    return true
   }
 
-  const regex = new RegExp(` ?${prefix}`, 'g');
-  return string.match(regex) === null;
+  const regex = new RegExp(` ?${prefix}`, 'g')
+  return string.match(regex) === null
 }
 
 export function formatText(input?: string | React.ReactNode) {
   if (!input) {
-    return;
+    return
   }
 
   if (typeof input !== 'string') {
-    return input;
+    return input
   }
 
-  return typographicBase(input, {locale: 'en-us'}).replace(
+  return typographicBase(input, { locale: 'en-us' }).replace(
     /\s([^\s<]+)\s*$/g,
-    '\u00A0$1',
-  );
+    '\u00A0$1'
+  )
 }
 
 export function getExcerpt(text: string) {
-  const regex = /<p.*>(.*?)<\/p>/;
-  const match = regex.exec(text);
-  return match?.length ? match[0] : text;
+  const regex = /<p.*>(.*?)<\/p>/
+  const match = regex.exec(text)
+  return match?.length ? match[0] : text
 }
 
 export function isNewArrival(date: string, daysOld = 30) {
   return (
     new Date(date).valueOf() >
     new Date().setDate(new Date().getDate() - daysOld).valueOf()
-  );
+  )
 }
 
 export function isDiscounted(price: MoneyV2, compareAtPrice: MoneyV2) {
   if (compareAtPrice?.amount > price?.amount) {
-    return true;
+    return true
   }
-  return false;
+  return false
 }
 
 function resolveToFromType(
@@ -71,14 +71,14 @@ function resolveToFromType(
     pathname,
     type,
   }: {
-    customPrefixes: Record<string, string>;
-    pathname?: string;
-    type?: string;
+    customPrefixes: Record<string, string>
+    pathname?: string
+    type?: string
   } = {
     customPrefixes: {},
-  },
+  }
 ) {
-  if (!pathname || !type) return '';
+  if (!pathname || !type) return ''
 
   /*
     MenuItemType enum
@@ -95,41 +95,41 @@ function resolveToFromType(
     PRODUCT: 'products',
     SEARCH: 'search',
     SHOP_POLICY: 'policies',
-  };
+  }
 
-  const pathParts = pathname.split('/');
-  const handle = pathParts.pop() || '';
+  const pathParts = pathname.split('/')
+  const handle = pathParts.pop() || ''
   const routePrefix: Record<string, string> = {
     ...defaultPrefixes,
     ...customPrefixes,
-  };
+  }
 
   switch (true) {
     // special cases
     case type === 'FRONTPAGE':
-      return '/';
+      return '/'
 
     case type === 'ARTICLE': {
-      const blogHandle = pathParts.pop();
+      const blogHandle = pathParts.pop()
       return routePrefix.BLOG
         ? `/${routePrefix.BLOG}/${blogHandle}/${handle}/`
-        : `/${blogHandle}/${handle}/`;
+        : `/${blogHandle}/${handle}/`
     }
 
     case type === 'COLLECTIONS':
-      return `/${routePrefix.COLLECTIONS}`;
+      return `/${routePrefix.COLLECTIONS}`
 
     case type === 'SEARCH':
-      return `/${routePrefix.SEARCH}`;
+      return `/${routePrefix.SEARCH}`
 
     case type === 'CATALOG':
-      return `/${routePrefix.CATALOG}`;
+      return `/${routePrefix.CATALOG}`
 
     // common cases: BLOG, PAGE, COLLECTION, PRODUCT, SHOP_POLICY, HTTP
     default:
       return routePrefix[type]
         ? `/${routePrefix[type]}/${handle}`
-        : `/${handle}`;
+        : `/${handle}`
   }
 }
 
@@ -140,19 +140,19 @@ function parseItem(customPrefixes = {}) {
   return function (item: MenuItem): EnhancedMenuItem {
     if (!item?.url || !item?.type) {
       // eslint-disable-next-line no-console
-      console.warn('Invalid menu item.  Must include a url and type.');
+      console.warn('Invalid menu item.  Must include a url and type.')
       // @ts-ignore
-      return;
+      return
     }
 
     // extract path from url because we don't need the origin on internal to attributes
-    const {pathname} = new URL(item.url);
+    const { pathname } = new URL(item.url)
 
     /*
       Currently the MenuAPI only returns online store urls e.g — xyz.myshopify.com/..
       Note: update logic when API is updated to include the active qualified domain
     */
-    const isInternalLink = /\.myshopify\.com/g.test(item.url);
+    const isInternalLink = /\.myshopify\.com/g.test(item.url)
 
     const parsedItem = isInternalLink
       ? // internal links
@@ -160,7 +160,7 @@ function parseItem(customPrefixes = {}) {
           ...item,
           isExternal: false,
           target: '_self',
-          to: resolveToFromType({type: item.type, customPrefixes, pathname}),
+          to: resolveToFromType({ type: item.type, customPrefixes, pathname }),
         }
       : // external links
         {
@@ -168,13 +168,13 @@ function parseItem(customPrefixes = {}) {
           isExternal: true,
           target: '_blank',
           to: item.url,
-        };
+        }
 
     return {
       ...parsedItem,
       items: item.items?.map(parseItem(customPrefixes)),
-    };
-  };
+    }
+  }
 }
 
 /*
@@ -185,25 +185,25 @@ function parseItem(customPrefixes = {}) {
 export function parseMenu(menu: Menu, customPrefixes = {}): EnhancedMenu {
   if (!menu?.items) {
     // eslint-disable-next-line no-console
-    console.warn('Invalid menu passed to parseMenu');
+    console.warn('Invalid menu passed to parseMenu')
     // @ts-ignore
-    return menu;
+    return menu
   }
 
   return {
     ...menu,
     items: menu.items.map(parseItem(customPrefixes)),
-  };
+  }
 }
 
 export const INPUT_STYLE_CLASSES =
-  'appearance-none rounded dark:bg-transparent border focus:border-primary/50 focus:ring-0 w-full py-2 px-3 text-primary/90 placeholder:text-primary/50 leading-tight focus:shadow-outline';
+  'appearance-none rounded dark:bg-transparent border focus:border-primary/50 focus:ring-0 w-full py-2 px-3 text-primary/90 placeholder:text-primary/50 leading-tight focus:shadow-outline'
 
 export const getInputStyleClasses = (isError?: string | null) => {
   return `${INPUT_STYLE_CLASSES} ${
     isError ? 'border-red-500' : 'border-primary/20'
-  }`;
-};
+  }`
+}
 
 export function statusMessage(status: string) {
   const translations: Record<string, string> = {
@@ -231,11 +231,11 @@ export function statusMessage(status: string) {
     SCHEDULED: 'Scheduled',
     SUBMITTED: 'Submitted',
     UNFULFILLED: 'Unfulfilled',
-  };
+  }
   try {
-    return translations?.[status];
+    return translations?.[status]
   } catch (error) {
-    return status;
+    return status
   }
 }
 
@@ -243,21 +243,21 @@ export function statusMessage(status: string) {
  * Errors can exist in an errors object, or nested in a data field.
  */
 export function assertApiErrors(data: Record<string, any> | null | undefined) {
-  const errorMessage = data?.customerUserErrors?.[0]?.message;
+  const errorMessage = data?.customerUserErrors?.[0]?.message
   if (errorMessage) {
-    throw new Error(errorMessage);
+    throw new Error(errorMessage)
   }
 }
 
 export const DEFAULT_LOCALE: I18nLocale = Object.freeze({
   ...countries.default,
   pathPrefix: '',
-});
+})
 
 export function getLocaleFromRequest(request: Request): I18nLocale {
-  const url = new URL(request.url);
+  const url = new URL(request.url)
   const firstPathPart =
-    '/' + url.pathname.substring(1).split('/')[0].toLowerCase();
+    '/' + url.pathname.substring(1).split('/')[0].toLowerCase()
 
   return countries[firstPathPart]
     ? {
@@ -267,24 +267,24 @@ export function getLocaleFromRequest(request: Request): I18nLocale {
     : {
         ...countries['default'],
         pathPrefix: '',
-      };
+      }
 }
 
 export function usePrefixPathWithLocale(path: string) {
-  const [root] = useMatches();
-  const selectedLocale = root.data?.selectedLocale ?? DEFAULT_LOCALE;
+  const [root] = useMatches()
+  const selectedLocale = root.data?.selectedLocale ?? DEFAULT_LOCALE
 
   return `${selectedLocale.pathPrefix}${
     path.startsWith('/') ? path : '/' + path
-  }`;
+  }`
 }
 
 export function useIsHomePath() {
-  const {pathname} = useLocation();
-  const [root] = useMatches();
-  const selectedLocale = root.data?.selectedLocale ?? DEFAULT_LOCALE;
-  const strippedPathname = pathname.replace(selectedLocale.pathPrefix, '');
-  return strippedPathname === '/';
+  const { pathname } = useLocation()
+  const [root] = useMatches()
+  const selectedLocale = root.data?.selectedLocale ?? DEFAULT_LOCALE
+  const strippedPathname = pathname.replace(selectedLocale.pathPrefix, '')
+  return strippedPathname === '/'
 }
 
 /**
@@ -299,10 +299,10 @@ export function isLocalPath(url: string) {
     // If `new URL()` succeeds, it's a fully qualified
     // url which is cross domain. If it fails, it's just
     // a path, which will be the current domain.
-    new URL(url);
+    new URL(url)
   } catch (e) {
-    return true;
+    return true
   }
 
-  return false;
+  return false
 }

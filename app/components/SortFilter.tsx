@@ -1,33 +1,33 @@
-import {SyntheticEvent, useMemo, useState} from 'react';
-import {Menu} from '@headlessui/react';
+import { SyntheticEvent, useMemo, useState } from 'react'
+import { Menu } from '@headlessui/react'
 
-import {Heading, IconFilters, IconCaret, IconXMark, Text} from '~/components';
+import { Heading, IconFilters, IconCaret, IconXMark, Text } from '~/components'
 import {
   Link,
   useLocation,
   useSearchParams,
   Location,
   useNavigate,
-} from '@remix-run/react';
-import {useDebounce} from 'react-use';
-import {Disclosure} from '@headlessui/react';
+} from '@remix-run/react'
+import { useDebounce } from 'react-use'
+import { Disclosure } from '@headlessui/react'
 
 import type {
   FilterType,
   Filter,
   Collection,
-} from '@shopify/hydrogen/storefront-api-types';
+} from '@shopify/hydrogen/storefront-api-types'
 import {
   AppliedFilter,
   SortParam,
-} from '~/routes/($lang)/collections/$collectionHandle';
+} from '~/routes/($lang)/collections/$collectionHandle'
 
 type Props = {
-  filters: Filter[];
-  appliedFilters?: AppliedFilter[];
-  children: React.ReactNode;
-  collections?: Collection[];
-};
+  filters: Filter[]
+  appliedFilters?: AppliedFilter[]
+  children: React.ReactNode
+  collections?: Collection[]
+}
 
 export function SortFilter({
   filters,
@@ -35,7 +35,7 @@ export function SortFilter({
   children,
   collections = [],
 }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -66,7 +66,7 @@ export function SortFilter({
         <div className="flex-1">{children}</div>
       </div>
     </>
-  );
+  )
 }
 
 export function FiltersDrawer({
@@ -74,12 +74,12 @@ export function FiltersDrawer({
   appliedFilters = [],
   collections = [],
 }: {
-  filters: Filter[];
-  appliedFilters: AppliedFilter[];
-  collections: Collection[];
+  filters: Filter[]
+  appliedFilters: AppliedFilter[]
+  collections: Collection[]
 }) {
-  const [params] = useSearchParams();
-  const location = useLocation();
+  const [params] = useSearchParams()
+  const location = useLocation()
 
   const filterMarkup = (filter: Filter, option: Filter['values'][0]) => {
     switch (filter.type) {
@@ -87,22 +87,22 @@ export function FiltersDrawer({
         const min =
           params.has('minPrice') && !isNaN(Number(params.get('minPrice')))
             ? Number(params.get('minPrice'))
-            : undefined;
+            : undefined
 
         const max =
           params.has('maxPrice') && !isNaN(Number(params.get('maxPrice')))
             ? Number(params.get('maxPrice'))
-            : undefined;
+            : undefined
 
-        return <PriceRangeFilter min={min} max={max} />;
+        return <PriceRangeFilter min={min} max={max} />
 
       default:
         const to = getFilterLink(
           filter,
           option.input as string,
           params,
-          location,
-        );
+          location
+        )
         return (
           <Link
             className="focus:underline hover:underline"
@@ -111,9 +111,9 @@ export function FiltersDrawer({
           >
             {option.label}
           </Link>
-        );
+        )
     }
-  };
+  }
 
   const collectionsMarkup = collections.map((collection) => {
     return (
@@ -127,8 +127,8 @@ export function FiltersDrawer({
           {collection.title}
         </Link>
       </li>
-    );
-  });
+    )
+  })
 
   return (
     <>
@@ -147,7 +147,7 @@ export function FiltersDrawer({
             (filter: Filter) =>
               filter.values.length > 1 && (
                 <Disclosure as="div" key={filter.id} className="w-full">
-                  {({open}) => (
+                  {({ open }) => (
                     <>
                       <Disclosure.Button className="flex justify-between w-full py-4">
                         <Text size="lead">{filter.label}</Text>
@@ -160,24 +160,24 @@ export function FiltersDrawer({
                               <li key={option.id} className="pb-4">
                                 {filterMarkup(filter, option)}
                               </li>
-                            );
+                            )
                           })}
                         </ul>
                       </Disclosure.Panel>
                     </>
                   )}
                 </Disclosure>
-              ),
+              )
           )}
         </div>
       </nav>
     </>
-  );
+  )
 }
 
-function AppliedFilters({filters = []}: {filters: AppliedFilter[]}) {
-  const [params] = useSearchParams();
-  const location = useLocation();
+function AppliedFilters({ filters = [] }: { filters: AppliedFilter[] }) {
+  const [params] = useSearchParams()
+  const location = useLocation()
   return (
     <>
       <Heading as="h4" size="lead" className="pb-4">
@@ -196,66 +196,66 @@ function AppliedFilters({filters = []}: {filters: AppliedFilter[]}) {
                 <IconXMark />
               </span>
             </Link>
-          );
+          )
         })}
       </div>
     </>
-  );
+  )
 }
 
 function getAppliedFilterLink(
   filter: AppliedFilter,
   params: URLSearchParams,
-  location: Location,
+  location: Location
 ) {
-  const paramsClone = new URLSearchParams(params);
+  const paramsClone = new URLSearchParams(params)
   if (filter.urlParam.key === 'variantOption') {
-    const variantOptions = paramsClone.getAll('variantOption');
+    const variantOptions = paramsClone.getAll('variantOption')
     const filteredVariantOptions = variantOptions.filter(
-      (options) => !options.includes(filter.urlParam.value),
-    );
-    paramsClone.delete(filter.urlParam.key);
+      (options) => !options.includes(filter.urlParam.value)
+    )
+    paramsClone.delete(filter.urlParam.key)
     for (const filteredVariantOption of filteredVariantOptions) {
-      paramsClone.append(filter.urlParam.key, filteredVariantOption);
+      paramsClone.append(filter.urlParam.key, filteredVariantOption)
     }
   } else {
-    paramsClone.delete(filter.urlParam.key);
+    paramsClone.delete(filter.urlParam.key)
   }
-  return `${location.pathname}?${paramsClone.toString()}`;
+  return `${location.pathname}?${paramsClone.toString()}`
 }
 
 function getSortLink(
   sort: SortParam,
   params: URLSearchParams,
-  location: Location,
+  location: Location
 ) {
-  params.set('sort', sort);
-  return `${location.pathname}?${params.toString()}`;
+  params.set('sort', sort)
+  return `${location.pathname}?${params.toString()}`
 }
 
 function getFilterLink(
   filter: Filter,
   rawInput: string | Record<string, any>,
   params: URLSearchParams,
-  location: ReturnType<typeof useLocation>,
+  location: ReturnType<typeof useLocation>
 ) {
-  const paramsClone = new URLSearchParams(params);
-  const newParams = filterInputToParams(filter.type, rawInput, paramsClone);
-  return `${location.pathname}?${newParams.toString()}`;
+  const paramsClone = new URLSearchParams(params)
+  const newParams = filterInputToParams(filter.type, rawInput, paramsClone)
+  return `${location.pathname}?${newParams.toString()}`
 }
 
-const PRICE_RANGE_FILTER_DEBOUNCE = 500;
+const PRICE_RANGE_FILTER_DEBOUNCE = 500
 
-function PriceRangeFilter({max, min}: {max?: number; min?: number}) {
-  const location = useLocation();
+function PriceRangeFilter({ max, min }: { max?: number; min?: number }) {
+  const location = useLocation()
   const params = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search],
-  );
-  const navigate = useNavigate();
+    [location.search]
+  )
+  const navigate = useNavigate()
 
-  const [minPrice, setMinPrice] = useState(min ? String(min) : '');
-  const [maxPrice, setMaxPrice] = useState(max ? String(max) : '');
+  const [minPrice, setMinPrice] = useState(min ? String(min) : '')
+  const [maxPrice, setMaxPrice] = useState(max ? String(max) : '')
 
   useDebounce(
     () => {
@@ -263,28 +263,28 @@ function PriceRangeFilter({max, min}: {max?: number; min?: number}) {
         (minPrice === '' || minPrice === String(min)) &&
         (maxPrice === '' || maxPrice === String(max))
       )
-        return;
+        return
 
-      const price: {min?: string; max?: string} = {};
-      if (minPrice !== '') price.min = minPrice;
-      if (maxPrice !== '') price.max = maxPrice;
+      const price: { min?: string; max?: string } = {}
+      if (minPrice !== '') price.min = minPrice
+      if (maxPrice !== '') price.max = maxPrice
 
-      const newParams = filterInputToParams('PRICE_RANGE', {price}, params);
-      navigate(`${location.pathname}?${newParams.toString()}`);
+      const newParams = filterInputToParams('PRICE_RANGE', { price }, params)
+      navigate(`${location.pathname}?${newParams.toString()}`)
     },
     PRICE_RANGE_FILTER_DEBOUNCE,
-    [minPrice, maxPrice],
-  );
+    [minPrice, maxPrice]
+  )
 
   const onChangeMax = (event: SyntheticEvent) => {
-    const newMaxPrice = (event.target as HTMLInputElement).value;
-    setMaxPrice(newMaxPrice);
-  };
+    const newMaxPrice = (event.target as HTMLInputElement).value
+    setMaxPrice(newMaxPrice)
+  }
 
   const onChangeMin = (event: SyntheticEvent) => {
-    const newMinPrice = (event.target as HTMLInputElement).value;
-    setMinPrice(newMinPrice);
-  };
+    const newMinPrice = (event.target as HTMLInputElement).value
+    setMinPrice(newMinPrice)
+  }
 
   return (
     <div className="flex flex-col">
@@ -311,44 +311,44 @@ function PriceRangeFilter({max, min}: {max?: number; min?: number}) {
         />
       </label>
     </div>
-  );
+  )
 }
 
 function filterInputToParams(
   type: FilterType,
   rawInput: string | Record<string, any>,
-  params: URLSearchParams,
+  params: URLSearchParams
 ) {
-  const input = typeof rawInput === 'string' ? JSON.parse(rawInput) : rawInput;
+  const input = typeof rawInput === 'string' ? JSON.parse(rawInput) : rawInput
   switch (type) {
     case 'PRICE_RANGE':
-      if (input.price.min) params.set('minPrice', input.price.min);
-      if (input.price.max) params.set('maxPrice', input.price.max);
-      break;
+      if (input.price.min) params.set('minPrice', input.price.min)
+      if (input.price.max) params.set('maxPrice', input.price.max)
+      break
     case 'LIST':
       Object.entries(input).forEach(([key, value]) => {
         if (typeof value === 'string') {
-          params.set(key, value);
+          params.set(key, value)
         } else if (typeof value === 'boolean') {
-          params.set(key, value.toString());
+          params.set(key, value.toString())
         } else {
-          const {name, value: val} = value as {name: string; value: string};
-          const allVariants = params.getAll(`variantOption`);
-          const newVariant = `${name}:${val}`;
+          const { name, value: val } = value as { name: string; value: string }
+          const allVariants = params.getAll(`variantOption`)
+          const newVariant = `${name}:${val}`
           if (!allVariants.includes(newVariant)) {
-            params.append('variantOption', newVariant);
+            params.append('variantOption', newVariant)
           }
         }
-      });
-      break;
+      })
+      break
   }
 
-  return params;
+  return params
 }
 
 export default function SortMenu() {
-  const items: {label: string; key: SortParam}[] = [
-    {label: 'Featured', key: 'featured'},
+  const items: { label: string; key: SortParam }[] = [
+    { label: 'Featured', key: 'featured' },
     {
       label: 'Price: Low - High',
       key: 'price-low-high',
@@ -365,10 +365,10 @@ export default function SortMenu() {
       label: 'Newest',
       key: 'newest',
     },
-  ];
-  const [params] = useSearchParams();
-  const location = useLocation();
-  const activeItem = items.find((item) => item.key === params.get('sort'));
+  ]
+  const [params] = useSearchParams()
+  const location = useLocation()
+  const activeItem = items.find((item) => item.key === params.get('sort'))
 
   return (
     <Menu as="div" className="relative z-40">
@@ -400,5 +400,5 @@ export default function SortMenu() {
         ))}
       </Menu.Items>
     </Menu>
-  );
+  )
 }

@@ -1,117 +1,117 @@
-import {flattenConnection} from '@shopify/hydrogen';
-import type {LoaderArgs} from '@shopify/remix-oxygen';
+import { flattenConnection } from '@shopify/hydrogen'
+import type { LoaderArgs } from '@shopify/remix-oxygen'
 import {
   CollectionConnection,
   PageConnection,
   ProductConnection,
-} from '@shopify/hydrogen/storefront-api-types';
-import invariant from 'tiny-invariant';
+} from '@shopify/hydrogen/storefront-api-types'
+import invariant from 'tiny-invariant'
 
-const MAX_URLS = 250; // the google limit is 50K, however, SF API only allow querying for 250 resources each time
+const MAX_URLS = 250 // the google limit is 50K, however, SF API only allow querying for 250 resources each time
 
 interface SitemapQueryData {
-  products: ProductConnection;
-  collections: CollectionConnection;
-  pages: PageConnection;
+  products: ProductConnection
+  collections: CollectionConnection
+  pages: PageConnection
 }
 
 interface ProductEntry {
-  url: string;
-  lastMod: string;
-  changeFreq: string;
+  url: string
+  lastMod: string
+  changeFreq: string
   image?: {
-    url: string;
-    title?: string;
-    caption?: string;
-  };
+    url: string
+    title?: string
+    caption?: string
+  }
 }
 
-export async function loader({request, context: {storefront}}: LoaderArgs) {
+export async function loader({ request, context: { storefront } }: LoaderArgs) {
   const data = await storefront.query<SitemapQueryData>(SITEMAP_QUERY, {
     variables: {
       urlLimits: MAX_URLS,
       language: storefront.i18n.language,
     },
-  });
+  })
 
-  invariant(data, 'Sitemap data is missing');
+  invariant(data, 'Sitemap data is missing')
 
   return new Response(
-    shopSitemap({data, baseUrl: new URL(request.url).origin}),
+    shopSitemap({ data, baseUrl: new URL(request.url).origin }),
     {
       headers: {
         'content-type': 'application/xml',
         // Cache for 24 hours
         'cache-control': `max-age=${60 * 60 * 24}`,
       },
-    },
-  );
+    }
+  )
 }
 
 function xmlEncode(string: string) {
-  return string.replace(/[&<>'"]/g, (char) => `&#${char.charCodeAt(0)};`);
+  return string.replace(/[&<>'"]/g, (char) => `&#${char.charCodeAt(0)};`)
 }
 
 function shopSitemap({
   data,
   baseUrl,
 }: {
-  data: SitemapQueryData;
-  baseUrl: string;
+  data: SitemapQueryData
+  baseUrl: string
 }) {
   const productsData = flattenConnection(data.products)
     .filter((product) => product.onlineStoreUrl)
     .map((product) => {
-      const url = `${baseUrl}/products/${xmlEncode(product.handle)}`;
+      const url = `${baseUrl}/products/${xmlEncode(product.handle)}`
 
       const finalObject: ProductEntry = {
         url,
         lastMod: product.updatedAt,
         changeFreq: 'daily',
-      };
+      }
 
       if (product.featuredImage?.url) {
         finalObject.image = {
           url: xmlEncode(product.featuredImage.url),
-        };
+        }
 
         if (product.title) {
-          finalObject.image.title = xmlEncode(product.title);
+          finalObject.image.title = xmlEncode(product.title)
         }
 
         if (product.featuredImage.altText) {
-          finalObject.image.caption = xmlEncode(product.featuredImage.altText);
+          finalObject.image.caption = xmlEncode(product.featuredImage.altText)
         }
       }
 
-      return finalObject;
-    });
+      return finalObject
+    })
 
   const collectionsData = flattenConnection(data.collections)
     .filter((collection) => collection.onlineStoreUrl)
     .map((collection) => {
-      const url = `${baseUrl}/collections/${collection.handle}`;
+      const url = `${baseUrl}/collections/${collection.handle}`
 
       return {
         url,
         lastMod: collection.updatedAt,
         changeFreq: 'daily',
-      };
-    });
+      }
+    })
 
   const pagesData = flattenConnection(data.pages)
     .filter((page) => page.onlineStoreUrl)
     .map((page) => {
-      const url = `${baseUrl}/pages/${page.handle}`;
+      const url = `${baseUrl}/pages/${page.handle}`
 
       return {
         url,
         lastMod: page.updatedAt,
         changeFreq: 'weekly',
-      };
-    });
+      }
+    })
 
-  const urlsDatas = [...productsData, ...collectionsData, ...pagesData];
+  const urlsDatas = [...productsData, ...collectionsData, ...pagesData]
 
   return `
     <urlset
@@ -119,7 +119,7 @@ function shopSitemap({
       xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
     >
       ${urlsDatas.map((url) => renderUrlTag(url)).join('')}
-    </urlset>`;
+    </urlset>`
 }
 
 function renderUrlTag({
@@ -128,14 +128,14 @@ function renderUrlTag({
   changeFreq,
   image,
 }: {
-  url: string;
-  lastMod?: string;
-  changeFreq?: string;
+  url: string
+  lastMod?: string
+  changeFreq?: string
   image?: {
-    url: string;
-    title?: string;
-    caption?: string;
-  };
+    url: string
+    title?: string
+    caption?: string
+  }
 }) {
   return `
     <url>
@@ -154,7 +154,7 @@ function renderUrlTag({
       }
 
     </url>
-  `;
+  `
 }
 
 const SITEMAP_QUERY = `#graphql
@@ -193,4 +193,4 @@ const SITEMAP_QUERY = `#graphql
       }
     }
   }
-`;
+`

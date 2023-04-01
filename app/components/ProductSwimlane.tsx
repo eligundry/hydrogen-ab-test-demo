@@ -1,8 +1,8 @@
-import type {SerializeFrom} from '@shopify/remix-oxygen';
-import type {Product} from '@shopify/hydrogen/storefront-api-types';
-import {ProductCard, Section} from '~/components';
+import type { SerializeFrom } from '@shopify/remix-oxygen'
+import type { Product } from '@shopify/hydrogen/storefront-api-types'
+import { ProductCard, Section } from '~/components'
 
-const mockProducts = new Array(12).fill('');
+const mockProducts = new Array(12).fill('')
 
 export function ProductSwimlane({
   title = 'Featured Products',
@@ -10,9 +10,9 @@ export function ProductSwimlane({
   count = 12,
   ...props
 }: {
-  title?: string;
-  products?: SerializeFrom<Product[]>;
-  count?: number;
+  title?: string
+  products?: SerializeFrom<Product[]>
+  count?: number
 }) {
   return (
     <Section heading={title} padding="y" {...props}>
@@ -26,5 +26,5 @@ export function ProductSwimlane({
         ))}
       </div>
     </Section>
-  );
+  )
 }

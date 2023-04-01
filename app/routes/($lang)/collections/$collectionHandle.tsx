@@ -1,81 +1,81 @@
-import {json, type LoaderArgs} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
+import { json, type LoaderArgs } from '@shopify/remix-oxygen'
+import { useLoaderData } from '@remix-run/react'
 import type {
   Collection as CollectionType,
   CollectionConnection,
   Filter,
-} from '@shopify/hydrogen/storefront-api-types';
-import {flattenConnection, AnalyticsPageType} from '@shopify/hydrogen';
-import invariant from 'tiny-invariant';
-import {PageHeader, Section, Text, SortFilter} from '~/components';
-import {ProductGrid} from '~/components/ProductGrid';
-import {PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
-import {CACHE_SHORT, routeHeaders} from '~/data/cache';
-import {seoPayload} from '~/lib/seo.server';
+} from '@shopify/hydrogen/storefront-api-types'
+import { flattenConnection, AnalyticsPageType } from '@shopify/hydrogen'
+import invariant from 'tiny-invariant'
+import { PageHeader, Section, Text, SortFilter } from '~/components'
+import { ProductGrid } from '~/components/ProductGrid'
+import { PRODUCT_CARD_FRAGMENT } from '~/data/fragments'
+import { CACHE_SHORT, routeHeaders } from '~/data/cache'
+import { seoPayload } from '~/lib/seo.server'
 
-export const headers = routeHeaders;
+export const headers = routeHeaders
 
-const PAGINATION_SIZE = 48;
+const PAGINATION_SIZE = 48
 
-type VariantFilterParam = Record<string, string | boolean>;
-type PriceFiltersQueryParam = Record<'price', {max?: number; min?: number}>;
+type VariantFilterParam = Record<string, string | boolean>
+type PriceFiltersQueryParam = Record<'price', { max?: number; min?: number }>
 type VariantOptionFiltersQueryParam = Record<
   'variantOption',
-  {name: string; value: string}
->;
+  { name: string; value: string }
+>
 
 export type AppliedFilter = {
-  label: string;
+  label: string
   urlParam: {
-    key: string;
-    value: string;
-  };
-};
+    key: string
+    value: string
+  }
+}
 
 type FiltersQueryParams = Array<
   VariantFilterParam | PriceFiltersQueryParam | VariantOptionFiltersQueryParam
->;
+>
 
 export type SortParam =
   | 'price-low-high'
   | 'price-high-low'
   | 'best-selling'
   | 'newest'
-  | 'featured';
+  | 'featured'
 
-export async function loader({params, request, context}: LoaderArgs) {
-  const {collectionHandle} = params;
+export async function loader({ params, request, context }: LoaderArgs) {
+  const { collectionHandle } = params
 
-  invariant(collectionHandle, 'Missing collectionHandle param');
+  invariant(collectionHandle, 'Missing collectionHandle param')
 
-  const searchParams = new URL(request.url).searchParams;
-  const knownFilters = ['productVendor', 'productType'];
-  const available = 'available';
-  const variantOption = 'variantOption';
-  const {sortKey, reverse} = getSortValuesFromParam(
-    searchParams.get('sort') as SortParam,
-  );
-  const cursor = searchParams.get('cursor');
-  const filters: FiltersQueryParams = [];
-  const appliedFilters: AppliedFilter[] = [];
+  const searchParams = new URL(request.url).searchParams
+  const knownFilters = ['productVendor', 'productType']
+  const available = 'available'
+  const variantOption = 'variantOption'
+  const { sortKey, reverse } = getSortValuesFromParam(
+    searchParams.get('sort') as SortParam
+  )
+  const cursor = searchParams.get('cursor')
+  const filters: FiltersQueryParams = []
+  const appliedFilters: AppliedFilter[] = []
 
   for (const [key, value] of searchParams.entries()) {
     if (available === key) {
-      filters.push({available: value === 'true'});
+      filters.push({ available: value === 'true' })
       appliedFilters.push({
         label: value === 'true' ? 'In stock' : 'Out of stock',
         urlParam: {
           key: available,
           value,
         },
-      });
+      })
     } else if (knownFilters.includes(key)) {
-      filters.push({[key]: value});
-      appliedFilters.push({label: value, urlParam: {key, value}});
+      filters.push({ [key]: value })
+      appliedFilters.push({ label: value, urlParam: { key, value } })
     } else if (key.includes(variantOption)) {
-      const [name, val] = value.split(':');
-      filters.push({variantOption: {name, value: val}});
-      appliedFilters.push({label: val, urlParam: {key, value}});
+      const [name, val] = value.split(':')
+      filters.push({ variantOption: { name, value: val } })
+      appliedFilters.push({ label: val, urlParam: { key, value } })
     }
   }
 
@@ -83,29 +83,29 @@ export async function loader({params, request, context}: LoaderArgs) {
   // the filters array. See price filters limitations:
   // https://shopify.dev/custom-storefronts/products-collections/filter-products#limitations
   if (searchParams.has('minPrice') || searchParams.has('maxPrice')) {
-    const price: {min?: number; max?: number} = {};
+    const price: { min?: number; max?: number } = {}
     if (searchParams.has('minPrice')) {
-      price.min = Number(searchParams.get('minPrice')) || 0;
+      price.min = Number(searchParams.get('minPrice')) || 0
       appliedFilters.push({
         label: `Min: $${price.min}`,
-        urlParam: {key: 'minPrice', value: searchParams.get('minPrice')!},
-      });
+        urlParam: { key: 'minPrice', value: searchParams.get('minPrice')! },
+      })
     }
     if (searchParams.has('maxPrice')) {
-      price.max = Number(searchParams.get('maxPrice')) || 0;
+      price.max = Number(searchParams.get('maxPrice')) || 0
       appliedFilters.push({
         label: `Max: $${price.max}`,
-        urlParam: {key: 'maxPrice', value: searchParams.get('maxPrice')!},
-      });
+        urlParam: { key: 'maxPrice', value: searchParams.get('maxPrice')! },
+      })
     }
     filters.push({
       price,
-    });
+    })
   }
 
-  const {collection, collections} = await context.storefront.query<{
-    collection: CollectionType;
-    collections: CollectionConnection;
+  const { collection, collections } = await context.storefront.query<{
+    collection: CollectionType
+    collections: CollectionConnection
   }>(COLLECTION_QUERY, {
     variables: {
       handle: collectionHandle,
@@ -117,14 +117,14 @@ export async function loader({params, request, context}: LoaderArgs) {
       country: context.storefront.i18n.country,
       language: context.storefront.i18n.language,
     },
-  });
+  })
 
   if (!collection) {
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 })
   }
 
-  const collectionNodes = flattenConnection(collections);
-  const seo = seoPayload.collection({collection, url: request.url});
+  const collectionNodes = flattenConnection(collections)
+  const seo = seoPayload.collection({ collection, url: request.url })
 
   return json(
     {
@@ -142,13 +142,13 @@ export async function loader({params, request, context}: LoaderArgs) {
       headers: {
         'Cache-Control': CACHE_SHORT,
       },
-    },
-  );
+    }
+  )
 }
 
 export default function Collection() {
-  const {collection, collections, appliedFilters} =
-    useLoaderData<typeof loader>();
+  const { collection, collections, appliedFilters } =
+    useLoaderData<typeof loader>()
 
   return (
     <>
@@ -178,7 +178,7 @@ export default function Collection() {
         </SortFilter>
       </Section>
     </>
-  );
+  )
 }
 
 const COLLECTION_QUERY = `#graphql
@@ -245,7 +245,7 @@ const COLLECTION_QUERY = `#graphql
       }
     }
   }
-`;
+`
 
 function getSortValuesFromParam(sortParam: SortParam | null) {
   switch (sortParam) {
@@ -253,31 +253,31 @@ function getSortValuesFromParam(sortParam: SortParam | null) {
       return {
         sortKey: 'PRICE',
         reverse: true,
-      };
+      }
     case 'price-low-high':
       return {
         sortKey: 'PRICE',
         reverse: false,
-      };
+      }
     case 'best-selling':
       return {
         sortKey: 'BEST_SELLING',
         reverse: false,
-      };
+      }
     case 'newest':
       return {
         sortKey: 'CREATED',
         reverse: true,
-      };
+      }
     case 'featured':
       return {
         sortKey: 'MANUAL',
         reverse: false,
-      };
+      }
     default:
       return {
         sortKey: 'RELEVANCE',
         reverse: false,
-      };
+      }
   }
 }

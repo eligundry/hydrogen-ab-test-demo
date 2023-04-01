@@ -1,12 +1,12 @@
-import {CartLoading, Cart} from '~/components';
-import {Await, useMatches} from '@remix-run/react';
-import {Suspense} from 'react';
-import invariant from 'tiny-invariant';
+import { CartLoading, Cart } from '~/components'
+import { Await, useMatches } from '@remix-run/react'
+import { Suspense } from 'react'
+import invariant from 'tiny-invariant'
 import {
   json,
   type ActionArgs,
   type AppLoadContext,
-} from '@shopify/remix-oxygen';
+} from '@shopify/remix-oxygen'
 import type {
   Cart as CartType,
   CartInput,
@@ -15,112 +15,114 @@ import type {
   CartUserError,
   UserError,
   CartBuyerIdentityInput,
-} from '@shopify/hydrogen/storefront-api-types';
-import {isLocalPath} from '~/lib/utils';
-import {CartAction, type CartActions} from '~/lib/type';
+} from '@shopify/hydrogen/storefront-api-types'
+import { isLocalPath } from '~/lib/utils'
+import { CartAction, type CartActions } from '~/lib/type'
 
-export async function action({request, context}: ActionArgs) {
-  const {session, storefront} = context;
-  const headers = new Headers();
+export async function action({ request, context }: ActionArgs) {
+  const { session, storefront } = context
+  const headers = new Headers()
 
   const [formData, storedCartId, customerAccessToken] = await Promise.all([
     request.formData(),
     session.get('cartId'),
     session.get('customerAccessToken'),
-  ]);
+  ])
 
-  let cartId = storedCartId;
+  let cartId = storedCartId
 
-  const cartAction = formData.get('cartAction') as CartActions;
-  invariant(cartAction, 'No cartAction defined');
+  const cartAction = formData.get('cartAction') as CartActions
+  invariant(cartAction, 'No cartAction defined')
 
   const countryCode = formData.get('countryCode')
     ? (formData.get('countryCode') as CartBuyerIdentityInput['countryCode'])
-    : null;
+    : null
 
-  let status = 200;
+  let status = 200
   let result: {
-    cart: CartType;
-    errors?: CartUserError[] | UserError[];
-  };
+    cart: CartType
+    errors?: CartUserError[] | UserError[]
+  }
 
   switch (cartAction) {
     case CartAction.ADD_TO_CART:
       const lines = formData.get('lines')
         ? (JSON.parse(String(formData.get('lines'))) as CartLineInput[])
-        : ([] as CartLineInput[]);
-      invariant(lines.length, 'No lines to add');
+        : ([] as CartLineInput[])
+      invariant(lines.length, 'No lines to add')
 
       /**
        * If no previous cart exists, create one with the lines.
        */
       if (!cartId) {
         result = await cartCreate({
-          input: countryCode ? {lines, buyerIdentity: {countryCode}} : {lines},
+          input: countryCode
+            ? { lines, buyerIdentity: { countryCode } }
+            : { lines },
           storefront,
-        });
+        })
       } else {
         result = await cartAdd({
           cartId,
           lines,
           storefront,
-        });
+        })
       }
 
-      cartId = result.cart.id;
+      cartId = result.cart.id
 
-      break;
+      break
     case CartAction.REMOVE_FROM_CART:
       const lineIds = formData.get('linesIds')
         ? (JSON.parse(String(formData.get('linesIds'))) as CartType['id'][])
-        : ([] as CartType['id'][]);
-      invariant(lineIds.length, 'No lines to remove');
+        : ([] as CartType['id'][])
+      invariant(lineIds.length, 'No lines to remove')
 
       result = await cartRemove({
         cartId,
         lineIds,
         storefront,
-      });
+      })
 
-      cartId = result.cart.id;
+      cartId = result.cart.id
 
-      break;
+      break
     case CartAction.UPDATE_CART:
       const updateLines = formData.get('lines')
         ? (JSON.parse(String(formData.get('lines'))) as CartLineUpdateInput[])
-        : ([] as CartLineUpdateInput[]);
-      invariant(updateLines.length, 'No lines to update');
+        : ([] as CartLineUpdateInput[])
+      invariant(updateLines.length, 'No lines to update')
 
       result = await cartUpdate({
         cartId,
         lines: updateLines,
         storefront,
-      });
+      })
 
-      cartId = result.cart.id;
+      cartId = result.cart.id
 
-      break;
+      break
     case CartAction.UPDATE_DISCOUNT:
-      invariant(cartId, 'Missing cartId');
+      invariant(cartId, 'Missing cartId')
 
-      const formDiscountCode = formData.get('discountCode');
-      const discountCodes = ([formDiscountCode] || ['']) as string[];
+      const formDiscountCode = formData.get('discountCode')
+      const discountCodes = ([formDiscountCode] || ['']) as string[]
 
       result = await cartDiscountCodesUpdate({
         cartId,
         discountCodes,
         storefront,
-      });
+      })
 
-      cartId = result.cart.id;
+      cartId = result.cart.id
 
-      break;
+      break
     case CartAction.UPDATE_BUYER_IDENTITY:
       const buyerIdentity = formData.get('buyerIdentity')
         ? (JSON.parse(
-            String(formData.get('buyerIdentity')),
+            String(formData.get('buyerIdentity'))
           ) as CartBuyerIdentityInput)
-        : ({} as CartBuyerIdentityInput);
+        : ({} as CartBuyerIdentityInput)
 
       result = cartId
         ? await cartUpdateBuyerIdentity({
@@ -139,28 +141,28 @@ export async function action({request, context}: ActionArgs) {
               },
             },
             storefront,
-          });
+          })
 
-      cartId = result.cart.id;
+      cartId = result.cart.id
 
-      break;
+      break
     default:
-      invariant(false, `${cartAction} cart action is not defined`);
+      invariant(false, `${cartAction} cart action is not defined`)
   }
 
   /**
    * The Cart ID may change after each mutation. We need to update it each time in the session.
    */
-  session.set('cartId', cartId);
-  headers.set('Set-Cookie', await session.commit());
+  session.set('cartId', cartId)
+  headers.set('Set-Cookie', await session.commit())
 
-  const redirectTo = formData.get('redirectTo') ?? null;
+  const redirectTo = formData.get('redirectTo') ?? null
   if (typeof redirectTo === 'string' && isLocalPath(redirectTo)) {
-    status = 303;
-    headers.set('Location', redirectTo);
+    status = 303
+    headers.set('Location', redirectTo)
   }
 
-  const {cart, errors} = result;
+  const { cart, errors } = result
   return json(
     {
       cart,
@@ -169,12 +171,12 @@ export async function action({request, context}: ActionArgs) {
         cartId,
       },
     },
-    {status, headers},
-  );
+    { status, headers }
+  )
 }
 
 export default function CartRoute() {
-  const [root] = useMatches();
+  const [root] = useMatches()
   // @todo: finish on a separate PR
   return (
     <div className="grid w-full gap-8 p-6 py-8 md:p-8 lg:p-12 justify-items-start">
@@ -184,7 +186,7 @@ export default function CartRoute() {
         </Await>
       </Suspense>
     </div>
-  );
+  )
 }
 
 /*
@@ -197,14 +199,14 @@ const USER_ERROR_FRAGMENT = `#graphql
     field
     code
   }
-`;
+`
 
 const LINES_CART_FRAGMENT = `#graphql
   fragment CartLinesFragment on Cart {
     id
     totalQuantity
   }
-`;
+`
 
 //! @see: https://shopify.dev/api/storefront/2022-01/mutations/cartcreate
 const CREATE_CART_MUTATION = `#graphql
@@ -221,7 +223,7 @@ const CREATE_CART_MUTATION = `#graphql
   }
   ${LINES_CART_FRAGMENT}
   ${USER_ERROR_FRAGMENT}
-`;
+`
 
 /**
  * Create a cart with line(s) mutation
@@ -234,22 +236,22 @@ export async function cartCreate({
   input,
   storefront,
 }: {
-  input: CartInput;
-  storefront: AppLoadContext['storefront'];
+  input: CartInput
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartCreate} = await storefront.mutate<{
+  const { cartCreate } = await storefront.mutate<{
     cartCreate: {
-      cart: CartType;
-      errors: CartUserError[];
-    };
-    errors: UserError[];
+      cart: CartType
+      errors: CartUserError[]
+    }
+    errors: UserError[]
   }>(CREATE_CART_MUTATION, {
-    variables: {input},
-  });
+    variables: { input },
+  })
 
-  invariant(cartCreate, 'No data returned from cartCreate mutation');
+  invariant(cartCreate, 'No data returned from cartCreate mutation')
 
-  return cartCreate;
+  return cartCreate
 }
 
 const ADD_LINES_MUTATION = `#graphql
@@ -266,7 +268,7 @@ const ADD_LINES_MUTATION = `#graphql
   }
   ${LINES_CART_FRAGMENT}
   ${USER_ERROR_FRAGMENT}
-`;
+`
 
 /**
  * Storefront API cartLinesAdd mutation
@@ -281,22 +283,22 @@ export async function cartAdd({
   lines,
   storefront,
 }: {
-  cartId: string;
-  lines: CartLineInput[];
-  storefront: AppLoadContext['storefront'];
+  cartId: string
+  lines: CartLineInput[]
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartLinesAdd} = await storefront.mutate<{
+  const { cartLinesAdd } = await storefront.mutate<{
     cartLinesAdd: {
-      cart: CartType;
-      errors: CartUserError[];
-    };
+      cart: CartType
+      errors: CartUserError[]
+    }
   }>(ADD_LINES_MUTATION, {
-    variables: {cartId, lines},
-  });
+    variables: { cartId, lines },
+  })
 
-  invariant(cartLinesAdd, 'No data returned from cartLinesAdd mutation');
+  invariant(cartLinesAdd, 'No data returned from cartLinesAdd mutation')
 
-  return cartLinesAdd;
+  return cartLinesAdd
 }
 
 const REMOVE_LINE_ITEMS_MUTATION = `#graphql
@@ -327,7 +329,7 @@ const REMOVE_LINE_ITEMS_MUTATION = `#graphql
       }
     }
   }
-`;
+`
 
 /**
  * Create a cart with line(s) mutation
@@ -342,21 +344,21 @@ export async function cartRemove({
   lineIds,
   storefront,
 }: {
-  cartId: string;
-  lineIds: CartType['id'][];
-  storefront: AppLoadContext['storefront'];
+  cartId: string
+  lineIds: CartType['id'][]
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartLinesRemove} = await storefront.mutate<{
-    cartLinesRemove: {cart: CartType; errors: UserError[]};
+  const { cartLinesRemove } = await storefront.mutate<{
+    cartLinesRemove: { cart: CartType; errors: UserError[] }
   }>(REMOVE_LINE_ITEMS_MUTATION, {
     variables: {
       cartId,
       lineIds,
     },
-  });
+  })
 
-  invariant(cartLinesRemove, 'No data returned from remove lines mutation');
-  return cartLinesRemove;
+  invariant(cartLinesRemove, 'No data returned from remove lines mutation')
+  return cartLinesRemove
 }
 
 const LINES_UPDATE_MUTATION = `#graphql
@@ -373,7 +375,7 @@ const LINES_UPDATE_MUTATION = `#graphql
       }
     }
   }
-`;
+`
 
 /**
  * Update cart line(s) mutation
@@ -388,21 +390,21 @@ export async function cartUpdate({
   lines,
   storefront,
 }: {
-  cartId: string;
-  lines: CartLineUpdateInput[];
-  storefront: AppLoadContext['storefront'];
+  cartId: string
+  lines: CartLineUpdateInput[]
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartLinesUpdate} = await storefront.mutate<{
-    cartLinesUpdate: {cart: CartType; errors: UserError[]};
+  const { cartLinesUpdate } = await storefront.mutate<{
+    cartLinesUpdate: { cart: CartType; errors: UserError[] }
   }>(LINES_UPDATE_MUTATION, {
-    variables: {cartId, lines},
-  });
+    variables: { cartId, lines },
+  })
 
   invariant(
     cartLinesUpdate,
-    'No data returned from update lines items mutation',
-  );
-  return cartLinesUpdate;
+    'No data returned from update lines items mutation'
+  )
+  return cartLinesUpdate
 }
 
 /**
@@ -432,7 +434,7 @@ const UPDATE_CART_BUYER_COUNTRY = `#graphql
      }
    }
  }
-`;
+`
 
 /**
  * Mutation to update a cart buyerIdentity
@@ -447,25 +449,25 @@ export async function cartUpdateBuyerIdentity({
   buyerIdentity,
   storefront,
 }: {
-  cartId: string;
-  buyerIdentity: CartBuyerIdentityInput;
-  storefront: AppLoadContext['storefront'];
+  cartId: string
+  buyerIdentity: CartBuyerIdentityInput
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartBuyerIdentityUpdate} = await storefront.mutate<{
-    cartBuyerIdentityUpdate: {cart: CartType; errors: UserError[]};
+  const { cartBuyerIdentityUpdate } = await storefront.mutate<{
+    cartBuyerIdentityUpdate: { cart: CartType; errors: UserError[] }
   }>(UPDATE_CART_BUYER_COUNTRY, {
     variables: {
       cartId,
       buyerIdentity,
     },
-  });
+  })
 
   invariant(
     cartBuyerIdentityUpdate,
-    'No data returned from cart buyer identity update mutation',
-  );
+    'No data returned from cart buyer identity update mutation'
+  )
 
-  return cartBuyerIdentityUpdate;
+  return cartBuyerIdentityUpdate
 }
 
 const DISCOUNT_CODES_UPDATE = `#graphql
@@ -484,7 +486,7 @@ const DISCOUNT_CODES_UPDATE = `#graphql
       }
     }
   }
-`;
+`
 
 /**
  * Mutation that updates the cart discounts
@@ -497,23 +499,23 @@ export async function cartDiscountCodesUpdate({
   discountCodes,
   storefront,
 }: {
-  cartId: string;
-  discountCodes: string[];
-  storefront: AppLoadContext['storefront'];
+  cartId: string
+  discountCodes: string[]
+  storefront: AppLoadContext['storefront']
 }) {
-  const {cartDiscountCodesUpdate} = await storefront.mutate<{
-    cartDiscountCodesUpdate: {cart: CartType; errors: UserError[]};
+  const { cartDiscountCodesUpdate } = await storefront.mutate<{
+    cartDiscountCodesUpdate: { cart: CartType; errors: UserError[] }
   }>(DISCOUNT_CODES_UPDATE, {
     variables: {
       cartId,
       discountCodes,
     },
-  });
+  })
 
   invariant(
     cartDiscountCodesUpdate,
-    'No data returned from the cartDiscountCodesUpdate mutation',
-  );
+    'No data returned from the cartDiscountCodesUpdate mutation'
+  )
 
-  return cartDiscountCodesUpdate;
+  return cartDiscountCodesUpdate
 }
