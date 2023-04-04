@@ -1,9 +1,9 @@
 import {
   defer,
-  type LinksFunction,
-  type MetaFunction,
-  type LoaderArgs,
-  type AppLoadContext,
+  LinksFunction,
+  MetaFunction,
+  LoaderArgs,
+  AppLoadContext,
 } from '@shopify/remix-oxygen'
 import {
   Links,
@@ -22,7 +22,7 @@ import { NotFound } from './components/NotFound'
 import styles from './styles/app.css'
 import favicon from '../public/favicon.svg'
 import { seoPayload } from '~/lib/seo.server'
-import { DEFAULT_LOCALE, parseMenu, type EnhancedMenu } from './lib/utils'
+import { DEFAULT_LOCALE, parseMenu, EnhancedMenu } from './lib/utils'
 import invariant from 'tiny-invariant'
 import { Shop, Cart } from '@shopify/hydrogen/storefront-api-types'
 import { useAnalytics } from './hooks/useAnalytics'

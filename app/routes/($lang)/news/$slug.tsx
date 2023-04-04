@@ -1,8 +1,4 @@
-import {
-  json,
-  type LinksFunction,
-  type LoaderArgs,
-} from '@shopify/remix-oxygen'
+import { json, LinksFunction, LoaderArgs } from '@shopify/remix-oxygen'
 import { useLoaderData } from '@remix-run/react'
 import { Image } from '@shopify/hydrogen'
 import { Blog } from '@shopify/hydrogen/storefront-api-types'
@@ -24,14 +20,14 @@ export const links: LinksFunction = () => {
 export async function loader({ request, params, context }: LoaderArgs) {
   const { language, country } = context.storefront.i18n
 
-  invariant(params.journalHandle, 'Missing journal handle')
+  invariant(params.slug, 'Missing journal handle')
 
   const { blog } = await context.storefront.query<{
     blog: Blog
   }>(ARTICLE_QUERY, {
     variables: {
       blogHandle: BLOG_HANDLE,
-      articleHandle: params.journalHandle,
+      articleHandle: params.slug,
       language,
     },
   })
