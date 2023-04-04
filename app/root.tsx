@@ -26,6 +26,7 @@ import { DEFAULT_LOCALE, parseMenu, EnhancedMenu } from './lib/utils'
 import invariant from 'tiny-invariant'
 import { Shop, Cart } from '@shopify/hydrogen/storefront-api-types'
 import { useAnalytics } from './hooks/useAnalytics'
+import Tracking from '~/components/Tracking'
 
 export const links: LinksFunction = () => {
   return [
@@ -82,6 +83,7 @@ export default function App() {
         <Seo />
         <Meta />
         <Links />
+        <Tracking />
       </head>
       <body>
         <Layout
