@@ -27,6 +27,8 @@ import invariant from 'tiny-invariant'
 import { Shop, Cart } from '@shopify/hydrogen/storefront-api-types'
 import { useAnalytics } from './hooks/useAnalytics'
 import Tracking from '~/components/Tracking'
+import { ClientOnly } from 'remix-utils'
+import GrowthBookProvider from '~/components/GrowthBook'
 
 export const links: LinksFunction = () => {
   return [
@@ -67,6 +69,10 @@ export async function loader({ request, context }: LoaderArgs) {
       shopId: layout.shop.id,
     },
     seo,
+    growthbook: {
+      features: context.growthbook.getFeatures(),
+      attributes: context.growthbook.getAttributes(),
+    },
   })
 }
 
@@ -78,24 +84,29 @@ export default function App() {
   useAnalytics(hasUserConsent, locale)
 
   return (
-    <html lang={locale.language}>
-      <head>
-        <Seo />
-        <Meta />
-        <Links />
-        <Tracking />
-      </head>
-      <body>
-        <Layout
-          layout={data.layout as LayoutData}
-          key={`${locale.language}-${locale.country}`}
-        >
-          <Outlet />
-        </Layout>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
+    <GrowthBookProvider
+      features={data.growthbook.features}
+      attributes={data.growthbook.attributes}
+    >
+      <html lang={locale.language}>
+        <head>
+          <Seo />
+          <Meta />
+          <Links />
+          <ClientOnly fallback={null}>{() => <Tracking />}</ClientOnly>
+        </head>
+        <body>
+          <Layout
+            layout={data.layout as LayoutData}
+            key={`${locale.language}-${locale.country}`}
+          >
+            <Outlet />
+          </Layout>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    </GrowthBookProvider>
   )
 }
 

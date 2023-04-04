@@ -4,6 +4,7 @@
 
 import type { Storefront } from '~/lib/type'
 import type { HydrogenSession } from '~/lib/session.server'
+import type { GrowthBook } from '@growthbook/growthbook'
 
 declare global {
   /**
@@ -22,6 +23,11 @@ declare global {
     PUBLIC_STORE_DOMAIN: string
     PUBLIC_STOREFRONT_ID: string
   }
+
+  // Add gtag to the global scope
+  interface Window {
+    gtag?: (...args: any[]) => void
+  }
 }
 
 /**
@@ -34,6 +40,7 @@ declare module '@shopify/remix-oxygen' {
     storefront: Storefront
     cache: Cache
     env: Env
+    growthbook: GrowthBook
   }
 }
 

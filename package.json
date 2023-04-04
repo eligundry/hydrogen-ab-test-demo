@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@builder.io/partytown": "^0.7.6",
+    "@growthbook/growthbook": "^0.24.0",
+    "@growthbook/growthbook-react": "^0.14.0",
     "@headlessui/react": "^1.7.2",
     "@remix-run/react": "1.14.0",
     "@shopify/cli": "3.29.0",
@@ -31,6 +33,7 @@
     "@shopify/remix-oxygen": "^1.0.4",
     "clsx": "^1.2.1",
     "concurrently": "^7.5.0",
+    "cookie": "^0.5.0",
     "cross-env": "^7.0.3",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
@@ -39,6 +42,7 @@
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.4.1",
     "react-use": "^17.4.0",
+    "remix-utils": "^6.1.0",
     "schema-dts": "^1.1.0",
     "tiny-invariant": "^1.2.0",
     "typographic-base": "^1.0.4"
@@ -51,6 +55,7 @@
     "@shopify/prettier-config": "^1.1.2",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.7",
+    "@types/cookie": "^0.5.1",
     "@types/eslint": "^8.4.10",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
